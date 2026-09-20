@@ -4,7 +4,7 @@
 > (overview, architecture, database, API, frontend, wallets, setup)
 
 
-https://github.com/user-attachments/assets/749e1a43-841c-4215-ba66-31b4d668e72d
+
 
 
 
