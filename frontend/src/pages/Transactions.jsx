@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { walletApi } from '../services/api'
-import { explorerUrl, formatBalance, formatDate, shortAddress } from '../lib/utils'
+import { explorerUrl, formatBalance, formatDate, shortAddress, cn } from '../lib/utils'
 import { WALLET_COINS } from '../lib/coins'
-import CoinIcon from '../components/vortex/CoinIcon'
+import CoinIcon from '../components/piramid/CoinIcon'
+import { ui } from '../components/piramid/ui'
 import BinancePage from '../components/layout/BinancePage'
 
 export default function Transactions() {
@@ -28,9 +29,9 @@ export default function Transactions() {
 
   return (
     <BinancePage crumb="History" title="Transaction History" sub="On-chain activity for the selected asset." wide>
-      <div className="bn-filters">
+      <div className="mb-4 flex flex-wrap gap-2">
         {WALLET_COINS.map((c) => (
-          <button key={c} type="button" className={`bn-coin${coin === c ? ' on' : ''}`} onClick={() => setCoin(c)}>
+          <button key={c} type="button" className={cn(ui.coin, coin === c && ui.coinOn)} onClick={() => setCoin(c)}>
             <CoinIcon symbol={c} />
             {c}
           </button>
@@ -41,14 +42,14 @@ export default function Transactions() {
           { id: 'received', label: 'Deposit' },
           { id: 'sent', label: 'Withdraw' },
         ].map((f) => (
-          <button key={f.id} type="button" className={`bn-coin${filter === f.id ? ' on' : ''}`} onClick={() => setFilter(f.id)}>
+          <button key={f.id} type="button" className={cn(ui.coin, filter === f.id && ui.coinOn)} onClick={() => setFilter(f.id)}>
             {f.label}
           </button>
         ))}
       </div>
 
-      <div className="bn-table-wrap">
-        <table className="bn-table">
+      <div className={ui.tableWrap}>
+        <table className="w-full min-w-[720px] border-collapse">
           <thead>
             <tr>
               <th>Time</th>
@@ -82,7 +83,7 @@ export default function Transactions() {
                     {formatBalance(tx.amount)} {tx.coin}
                   </td>
                   <td>
-                    <a href={explorerUrl(tx.coin, tx.txid)} target="_blank" rel="noreferrer" className="bn-link" style={{ fontFamily: 'monospace' }}>
+                    <a href={explorerUrl(tx.coin, tx.txid)} target="_blank" rel="noreferrer" className={ui.link} style={{ fontFamily: 'monospace' }}>
                       {shortAddress(tx.txid, 10, 8)} <ExternalLink size={11} />
                     </a>
                   </td>

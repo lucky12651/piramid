@@ -1,67 +1,59 @@
 import { useEffect, useRef } from 'react'
+import { useUiTheme } from '../../lib/theme'
+import { mountTradingViewWidget } from '../../lib/tvWidget'
 
 /** TradingView Market Overview — crypto tab */
-export default function MarketOverview({ height = 340 }) {
+export default function MarketOverview({ height = 420 }) {
   const containerRef = useRef(null)
+  const { light, tvTheme, backgroundColor } = useUiTheme()
 
   useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    el.innerHTML = ''
-    const widget = document.createElement('div')
-    widget.className = 'tradingview-widget-container__widget'
-    widget.style.height = '100%'
-    widget.style.width = '100%'
-    el.appendChild(widget)
-
-    const script = document.createElement('script')
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js'
-    script.type = 'text/javascript'
-    script.async = true
-    script.innerHTML = JSON.stringify({
-      colorTheme: 'dark',
-      dateRange: '12M',
-      showChart: true,
-      locale: 'en',
-      width: '100%',
-      height: '100%',
-      largeChartUrl: '',
-      isTransparent: true,
-      showSymbolLogo: true,
-      showFloatingTooltip: true,
-      plotLineColorGrowing: 'rgba(255, 255, 255, 0.8)',
-      plotLineColorFalling: 'rgba(255, 255, 255, 0.35)',
-      gridLineColor: 'rgba(255, 255, 255, 0.06)',
-      scaleFontColor: 'rgba(255, 255, 255, 0.55)',
-      belowLineFillColorGrowing: 'rgba(255, 255, 255, 0.08)',
-      belowLineFillColorFalling: 'rgba(255, 255, 255, 0.03)',
-      symbolActiveColor: 'rgba(255, 255, 255, 0.08)',
-      tabs: [
-        {
-          title: 'Crypto',
-          symbols: [
-            { s: 'BITSTAMP:BTCUSD', d: 'Bitcoin' },
-            { s: 'BITSTAMP:ETHUSD', d: 'Ethereum' },
-            { s: 'BINANCE:DOGEUSDT', d: 'Dogecoin' },
-            { s: 'BITSTAMP:LTCUSD', d: 'Litecoin' },
-            { s: 'BINANCE:SOLUSDT', d: 'Solana' },
-            { s: 'BINANCE:XRPUSDT', d: 'XRP' },
-            { s: 'BINANCE:BNBUSDT', d: 'BNB' },
-            { s: 'CRYPTOCAP:USDT', d: 'Tether' },
-          ],
-        },
-      ],
-    })
-    el.appendChild(script)
-    return () => {
-      el.innerHTML = ''
-    }
-  }, [])
+    return mountTradingViewWidget(
+      containerRef.current,
+      'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',
+      {
+        colorTheme: tvTheme,
+        theme: tvTheme,
+        dateRange: '12M',
+        showChart: true,
+        locale: 'en',
+        width: '100%',
+        height: '100%',
+        largeChartUrl: '',
+        isTransparent: false,
+        showSymbolLogo: true,
+        showFloatingTooltip: true,
+        plotLineColorGrowing: light ? 'rgba(30, 35, 41, 0.75)' : 'rgba(215, 242, 76, 0.95)',
+        plotLineColorFalling: light ? 'rgba(30, 35, 41, 0.35)' : 'rgba(255, 255, 255, 0.45)',
+        gridLineColor: light ? 'rgba(30, 35, 41, 0.08)' : 'rgba(255, 255, 255, 0.06)',
+        scaleFontColor: light ? 'rgba(30, 35, 41, 0.55)' : 'rgba(245, 245, 247, 0.7)',
+        belowLineFillColorGrowing: light ? 'rgba(215, 242, 76, 0.18)' : 'rgba(215, 242, 76, 0.12)',
+        belowLineFillColorFalling: light ? 'rgba(30, 35, 41, 0.04)' : 'rgba(255, 255, 255, 0.04)',
+        symbolActiveColor: light ? 'rgba(215, 242, 76, 0.16)' : 'rgba(215, 242, 76, 0.12)',
+        tabs: [
+          {
+            title: 'Crypto',
+            symbols: [
+              { s: 'BITSTAMP:BTCUSD', d: 'Bitcoin' },
+              { s: 'BITSTAMP:ETHUSD', d: 'Ethereum' },
+              { s: 'BINANCE:DOGEUSDT', d: 'Dogecoin' },
+              { s: 'BITSTAMP:LTCUSD', d: 'Litecoin' },
+              { s: 'BINANCE:SOLUSDT', d: 'Solana' },
+              { s: 'BINANCE:XRPUSDT', d: 'XRP' },
+              { s: 'BINANCE:BNBUSDT', d: 'BNB' },
+              { s: 'CRYPTOCAP:USDT', d: 'Tether' },
+            ],
+          },
+        ],
+      }
+    )
+  }, [light, tvTheme])
 
   return (
     <div
+      key={tvTheme}
       className="tradingview-widget-container h-full w-full overflow-hidden rounded-2xl"
-      style={{ height }}
+      style={{ height, background: backgroundColor }}
       ref={containerRef}
     />
   )

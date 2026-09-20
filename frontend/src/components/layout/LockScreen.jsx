@@ -62,17 +62,17 @@ export default function LockScreen() {
       <div className="lock-screen-grid" aria-hidden="true" />
 
       <div className="relative z-10 w-full max-w-md px-1">
-        {/* Brand — same as Login: logo + CoinCloud text */}
+        {/* Brand — same as Login: logo + Piramid text */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2.5">
+          <div className="inline-flex items-center gap-2.5 text-white">
             <BrandLogo size={36} rounded="rounded-xl" />
             <span className="text-base font-semibold tracking-tight text-white">
-              CoinCloud
+              Piramid
             </span>
           </div>
 
-          <div className="mx-auto mt-6 flex h-12 w-12 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10">
-            <Lock className="h-5 w-5 text-emerald-400" />
+          <div className="mx-auto mt-6 flex h-12 w-12 items-center justify-center rounded-full border border-[#d7f24c]/30 bg-[#d7f24c]/10">
+            <Lock className="h-5 w-5 text-[#d7f24c]" />
           </div>
 
           <h1

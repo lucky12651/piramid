@@ -1,19 +1,21 @@
 import { Link, NavLink } from 'react-router-dom'
+import { cn } from '../../lib/utils'
+import { ui } from '../piramid/ui'
 
 export const TRANSFER_TABS = [
   { to: '/app/send', label: 'Withdraw' },
   { to: '/app/receive', label: 'Deposit' },
-  { to: '/app/swap', label: 'Convert' },
+  { to: '/app/swap', label: 'Trade' },
 ]
 
 export function TransferTabs() {
   return (
-    <div className="bn-tabs">
+    <div className="mb-6 flex gap-1 border-b border-[var(--line)]">
       {TRANSFER_TABS.map((t) => (
         <NavLink
           key={t.to}
           to={t.to}
-          className={({ isActive }) => `bn-tab${isActive ? ' active' : ''}`}
+          className={({ isActive }) => cn(ui.tab, isActive && ui.tabOn)}
         >
           {t.label}
         </NavLink>
@@ -32,21 +34,21 @@ export default function BinancePage({
   wide = false,
 }) {
   return (
-    <div className="bn-page">
-      <div className="bn-crumb">
-        <Link to="/app">Wallet</Link>
-        <span className="sep">/</span>
+    <div className={ui.page}>
+      <div className={ui.crumb}>
+        <Link to="/app">Piramid</Link>
+        <span>/</span>
         <span>{crumb}</span>
       </div>
-      <h1 className="bn-title">{title}</h1>
-      {sub && <p className="bn-sub">{sub}</p>}
+      <h1 className={ui.pageTitle}>{title}</h1>
+      {sub && <p className={ui.sub}>{sub}</p>}
       {tabs}
       {wide || !aside ? (
         children
       ) : (
-        <div className="bn-grid">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
           <div>{children}</div>
-          <aside className="bn-aside">{aside}</aside>
+          <aside className="flex flex-col gap-4">{aside}</aside>
         </div>
       )}
     </div>
@@ -55,13 +57,13 @@ export default function BinancePage({
 
 export function Faq({ items }) {
   return (
-    <div className="bn-side">
-      <h3>FAQ</h3>
-      <div className="bn-faq">
+    <div className={ui.side}>
+      <h3 className="mb-3 text-base font-bold">FAQ</h3>
+      <div className="divide-y divide-[var(--line)]">
         {items.map((it) => (
-          <details key={it.q}>
-            <summary>{it.q}</summary>
-            <p>{it.a}</p>
+          <details key={it.q} className="py-3">
+            <summary className="cursor-pointer list-none text-[13.5px] font-semibold">{it.q}</summary>
+            <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-dim)]">{it.a}</p>
           </details>
         ))}
       </div>

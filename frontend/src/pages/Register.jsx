@@ -33,7 +33,7 @@ export default function Register() {
     try {
       const { data } = await authApi.register(form)
       setSession(data.access_token, data.user)
-      toast.success('Wallet created — welcome to CoinCloud')
+      toast.success('Wallet created — welcome to Piramid')
       navigate('/app')
     } catch (err) {
       toast.error(getApiError(err, 'Registration failed'))
@@ -47,9 +47,9 @@ export default function Register() {
       <div className="pointer-events-none absolute inset-0 grid-fade opacity-60" />
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2.5">
+          <Link to="/" className="inline-flex items-center gap-2.5 text-white">
             <BrandLogo size={36} rounded="rounded-xl" />
-            <span className="font-semibold">CoinCloud</span>
+            <span className="font-semibold tracking-tight">Piramid</span>
           </Link>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">Create your wallet</h1>
           <p className="mt-2 text-sm text-white/45">

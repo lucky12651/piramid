@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import { Star } from 'lucide-react'
 import { marketApi } from '../services/api'
 import { formatUsd } from '../lib/utils'
-import CoinIcon from '../components/vortex/CoinIcon'
-import Change from '../components/vortex/Change'
+import CoinIcon from '../components/piramid/CoinIcon'
+import Change from '../components/piramid/Change'
+import { ui } from '../components/piramid/ui'
 import MarketOverview from '../components/market/MarketOverview'
 import { useWalletStore } from '../store/useWalletStore'
 import BinancePage from '../components/layout/BinancePage'
@@ -39,11 +40,11 @@ export default function Market() {
       sub="Live prices. Star a coin to pin it on the watchlist."
       wide
     >
-      <div className="bn-panel" style={{ marginBottom: 16, padding: 8 }}>
+      <div className={ui.panel} style={{ marginBottom: 16, padding: 8 }}>
         <MarketOverview height={340} />
       </div>
-      <div className="bn-table-wrap">
-        <table className="bn-table">
+      <div className={ui.tableWrap}>
+        <table className="w-full min-w-[720px] border-collapse">
           <thead>
             <tr>
               <th></th>
@@ -81,7 +82,7 @@ export default function Market() {
         </table>
       </div>
       <div style={{ marginTop: 12 }}>
-        <Link to="/app/calendar" className="bn-link">Economic calendar →</Link>
+        <Link to="/app/calendar" className={ui.link}>Economic calendar →</Link>
       </div>
     </BinancePage>
   )

@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import { NETWORKS, useWalletStore } from '../store/useWalletStore'
 import { cn } from '../lib/utils'
+import { ui } from '../components/piramid/ui'
 import toast from 'react-hot-toast'
 import BinancePage from '../components/layout/BinancePage'
 
@@ -10,7 +11,7 @@ export default function Networks() {
 
   return (
     <BinancePage crumb="Networks" title="Networks" sub="Active chain for withdraw, deposit, and dApps.">
-      <div className="bn-panel" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className={ui.panel} style={{ padding: 0, overflow: 'hidden' }}>
         {NETWORKS.map((n) => {
           const active = n.id === networkId
           return (

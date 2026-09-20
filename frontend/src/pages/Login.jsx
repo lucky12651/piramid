@@ -33,12 +33,12 @@ export default function Login() {
       <div className="pointer-events-none absolute inset-0 grid-fade opacity-60" />
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2.5">
+          <Link to="/" className="inline-flex items-center gap-2.5 text-white">
             <BrandLogo size={36} rounded="rounded-xl" />
-            <span className="font-semibold">CoinCloud</span>
+            <span className="font-semibold tracking-tight">Piramid</span>
           </Link>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">Sign in</h1>
-          <p className="mt-2 text-sm text-white/45">Access your multi-chain wallet</p>
+          <p className="mt-2 text-sm text-white/45">Access your trading terminal</p>
         </div>
 
         <form onSubmit={onSubmit} className="x-card space-y-4 p-6 sm:p-8">

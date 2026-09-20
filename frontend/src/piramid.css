@@ -1,0 +1,120 @@
+/* Piramid tokens + motion. All layout/chrome lives in Tailwind JSX. */
+:root, .piramid-shell {
+  --bg: #0a0a0c; --sidebar-bg: #0e0e11; --card: rgba(21, 21, 25, 0.72); --line: #232329;
+  --text: #f5f5f7; --text-dim: #9a9aa3; --text-dimmer: #5c5c66; --accent: #d7f24c;
+  --accent-dim: rgba(215, 242, 76, 0.14); --green: #3ddc84; --green-bg: rgba(61, 220, 132, 0.13);
+  --red: #f36969; --red-bg: rgba(243, 105, 105, 0.13); --hover: #17171c; --muted-bg: #1e1e24; --ink: #0a0a0c; --chart-bg: #111114;
+}
+.theme-light, .piramid-shell.theme-light {
+  --bg: #e8ece3; --sidebar-bg: #f7f8f4; --card: #ffffff; --line: #d4dbc8;
+  --text: #1a1f16; --text-dim: #5a6154; --text-dimmer: #7e8676; --hover: #eef1ea;
+  --muted-bg: #eef1ea; --ink: #12160f; --chart-bg: #fff; --accent-dim: rgba(180, 200, 40, 0.2);
+  --green: #12985a; --green-bg: rgba(18, 152, 90, 0.12); --red: #d64545; --red-bg: rgba(214, 69, 69, 0.12);
+  color-scheme: light;
+}
+.piramid-shell {
+  background:
+    radial-gradient(ellipse 62% 48% at 90% -10%, rgba(215, 242, 76, 0.28), transparent 58%),
+    radial-gradient(ellipse 40% 30% at 0% 110%, rgba(215, 242, 76, 0.08), transparent 52%),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.piramid-shell.theme-light {
+  background:
+    radial-gradient(ellipse 50% 36% at 88% -8%, rgba(215, 242, 76, 0.09), transparent 58%),
+    var(--bg);
+}
+@keyframes p-pulse { 0%, 100% { box-shadow: 0 0 6px var(--green), 0 0 0 4px var(--green-bg); } 50% { box-shadow: 0 0 14px var(--green), 0 0 0 7px transparent; } }
+@keyframes p-sheen { 0%, 52% { transform: translateX(-140%); } 78%, 100% { transform: translateX(140%); } }
+.p-sheen { position: relative; overflow: hidden; }
+.p-sheen::after {
+  content: "";
+  position: absolute;
+  inset: -35% -55%;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.72) 50%, transparent 62%);
+  animation: p-sheen 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.p-glass { position: relative; overflow: hidden; }
+.p-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(165deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.03) 34%, transparent 58%);
+}
+.p-glass::after {
+  content: "";
+  position: absolute;
+  inset: -28% -48%;
+  background: linear-gradient(105deg, transparent 44%, rgba(255,255,255,.1) 50%, transparent 56%);
+  animation: p-sheen 7.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.theme-light .p-glass::before {
+  background: linear-gradient(165deg, rgba(255,255,255,.22) 0%, transparent 38%);
+}
+.theme-light .p-glass::after {
+  background: linear-gradient(105deg, transparent 46%, rgba(215,242,76,.08) 50%, transparent 54%);
+}
+.theme-light .p-sheen::after {
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.45) 50%, transparent 60%);
+}
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: p-pulse 2.2s ease-in-out infinite; flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) { .p-sheen::after, .p-glass::after, .live-dot { animation: none; } }
+.piramid-shell ::-webkit-scrollbar { width: 8px; height: 8px; }
+.piramid-shell ::-webkit-scrollbar-thumb { background: #28282f; border-radius: 8px; }
+.theme-light ::-webkit-scrollbar-thumb { background: #c9d0c0; }
+html.theme-light body { background: #e8ece3; color: #1a1f16; }
+
+.piramid-shell table th {
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-dimmer);
+  font-weight: 600;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.piramid-shell table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  vertical-align: middle;
+  color: var(--text);
+}
+.piramid-shell table tbody tr:hover td { background: var(--hover); }
+
+.piramid-shell .pf-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 18px;
+}
+@media (max-width: 860px) {
+  .piramid-shell .pf-hero { grid-template-columns: 1fr; }
+}
+.piramid-shell .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.piramid-shell .card-head-left { display: flex; align-items: center; gap: 10px; }
+.piramid-shell .portfolio-perf { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.piramid-shell .perf-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: var(--green-bg); color: var(--green);
+  font-size: 12px; font-weight: 700;
+  border-radius: 999px; padding: 4px 9px;
+}
+.piramid-shell .perf-badge.neg { background: var(--red-bg); color: var(--red); }
+.piramid-shell .perf-label { font-size: 12px; color: var(--text-dimmer); }
+.piramid-shell .alloc-wrap { display: flex; align-items: center; gap: 14px; margin: 4px 0 14px; }
+.piramid-shell .alloc-legend { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.piramid-shell .alloc-leg { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
+.piramid-shell .alloc-sw { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.piramid-shell .holdings { display: flex; flex-direction: column; gap: 4px; }
+.piramid-shell .wl-change {
+  font-size: 11.5px; font-weight: 700;
+  display: flex; align-items: center; gap: 2px;
+  flex-shrink: 0;
+}
+.piramid-shell .wl-change.pos { color: var(--green); }
+.piramid-shell .wl-change.neg { color: var(--red); }

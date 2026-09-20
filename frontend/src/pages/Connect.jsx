@@ -240,7 +240,7 @@ export default function Connect() {
               <h3 className="mt-3 text-lg font-semibold">{pending.name}</h3>
               <p className="mt-1 text-xs text-white/40">{pending.origin}</p>
               <p className="mt-4 text-sm text-white/60">
-                wants to connect to your CoinCloud wallet
+                wants to connect to your Piramid wallet
               </p>
             </div>
 

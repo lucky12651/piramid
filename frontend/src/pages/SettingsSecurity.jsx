@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { AlertTriangle, Copy, EyeOff, Shield } from 'lucide-react'
 import { authApi } from '../services/api'
 import { copyText } from '../lib/utils'
+import { ui } from '../components/piramid/ui'
 import { useWalletStore } from '../store/useWalletStore'
 import BinancePage, { Faq } from '../components/layout/BinancePage'
 
@@ -42,33 +43,33 @@ export default function SettingsSecurity() {
       sub="Recovery phrase, private keys, and backup."
       aside={
         <>
-          <div className="bn-side">
+          <div className={ui.side}>
             <h3>Warning</h3>
-            <div className="bn-warn">
+            <div className={ui.warn}>
               Never share your recovery phrase or private keys. Anyone with them can take your funds.
             </div>
           </div>
           <Faq
             items={[
               { q: 'What should I back up?', a: 'Write down both phrases (BTC/LTC/DOGE and ETH/USDT) offline. Do not screenshot them.' },
-              { q: 'Is this stored on CoinCloud servers in plaintext?', a: 'Reveal only on this device after you sign in. Treat the values as the master key to the wallet.' },
+              { q: 'Is this stored on Piramid servers in plaintext?', a: 'Reveal only on this device after you sign in. Treat the values as the master key to the wallet.' },
             ]}
           />
         </>
       }
     >
-      <div className="bn-panel">
-        <div className="bn-label" style={{ marginBottom: 12 }}>
+      <div className={ui.panel}>
+        <div className={ui.label} style={{ marginBottom: 12 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <Shield size={16} /> Recovery data
           </span>
         </div>
-        <p className="bn-hint" style={{ marginBottom: 16 }}>
+        <p className={ui.hint} style={{ marginBottom: 16 }}>
           Full backup for BTC, LTC, DOGE, ETH and USDT. Reveal only in a private place.
         </p>
 
         {!showSecrets ? (
-          <button type="button" onClick={loadSecrets} disabled={loadingPhrase} className="bn-submit">
+          <button type="button" onClick={loadSecrets} disabled={loadingPhrase} className={ui.submit}>
             {loadingPhrase ? 'Loading…' : 'Reveal recovery data'}
           </button>
         ) : (
@@ -86,16 +87,16 @@ export default function SettingsSecurity() {
               onCopy={() => copy(bundle?.mnemonic_evm?.passphrase || bundle?.passphrase_eth, 'ETH phrase')}
             />
 
-            <div className="bn-row">
-              <div className="bn-label">Deposit addresses</div>
+            <div className={ui.row}>
+              <div className={ui.label}>Deposit addresses</div>
               {Object.entries(bundle?.addresses || {}).map(([k, v]) => (
-                <div key={k} className="wl-item" style={{ paddingLeft: 0 }}>
-                  <div className="wl-info">
-                    <div className="wl-name">{k}</div>
-                    <div className="wl-price" style={{ fontFamily: 'monospace' }}>{v || '—'}</div>
+                <div key={k} className={ui.wlItem} style={{ paddingLeft: 0 }}>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-xs font-semibold">{k}</div>
+                    <div className="mt-px text-xs text-[var(--text-dimmer)]" style={{ fontFamily: 'monospace' }}>{v || '—'}</div>
                   </div>
                   {v && (
-                    <button type="button" className="bn-link" onClick={() => copy(v, k)}>
+                    <button type="button" className={ui.link} onClick={() => copy(v, k)}>
                       Copy
                     </button>
                   )}
@@ -103,8 +104,8 @@ export default function SettingsSecurity() {
               ))}
             </div>
 
-            <div className="bn-row">
-              <div className="bn-label">
+            <div className={ui.row}>
+              <div className={ui.label}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--red)' }}>
                   <AlertTriangle size={14} /> Private keys
                 </span>
@@ -118,11 +119,11 @@ export default function SettingsSecurity() {
               ].map(({ k, label }) => {
                 const v = bundle?.private_keys?.[k]
                 return (
-                  <div key={k} className="bn-addr" style={{ marginBottom: 8 }}>
-                    <div className="bn-label">
+                  <div key={k} className={ui.addr} style={{ marginBottom: 8 }}>
+                    <div className={ui.label}>
                       {label}
                       {v && (
-                        <button type="button" className="bn-link" onClick={() => copy(v, label)}>
+                        <button type="button" className={ui.link} onClick={() => copy(v, label)}>
                           <Copy size={12} /> Copy
                         </button>
                       )}
@@ -135,7 +136,7 @@ export default function SettingsSecurity() {
 
             <button
               type="button"
-              className="bn-coin"
+              className={ui.coin}
               onClick={() => {
                 setShowSecrets(false)
                 setBundle(null)
@@ -152,14 +153,14 @@ export default function SettingsSecurity() {
 
 function SecretBlock({ title, note, value, onCopy }) {
   return (
-    <div className="bn-addr" style={{ marginBottom: 12 }}>
-      <div className="bn-label">
+    <div className={ui.addr} style={{ marginBottom: 12 }}>
+      <div className={ui.label}>
         {title}
-        <button type="button" className="bn-link" onClick={onCopy}>
+        <button type="button" className={ui.link} onClick={onCopy}>
           <Copy size={12} /> Copy
         </button>
       </div>
-      {note && <div className="bn-hint" style={{ marginBottom: 8 }}>{note}</div>}
+      {note && <div className={ui.hint} style={{ marginBottom: 8 }}>{note}</div>}
       {value || '(not stored for this account)'}
     </div>
   )

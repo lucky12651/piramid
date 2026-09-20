@@ -4,6 +4,7 @@ import { authApi } from '../services/api'
 import { useAuthStore } from '../store/useAuthStore'
 import { getApiError } from '../lib/errors'
 import BinancePage, { Faq } from '../components/layout/BinancePage'
+import { ui } from '../components/piramid/ui'
 
 export default function SettingsProfile() {
   const user = useAuthStore((s) => s.user)
@@ -45,45 +46,45 @@ export default function SettingsProfile() {
         />
       }
     >
-      <div className="bn-panel" style={{ marginBottom: 16 }}>
-        <div className="bn-row">
-          <div className="bn-label">Username</div>
-          <div className="bn-input">{user?.username || '—'}</div>
+      <div className={ui.panel} style={{ marginBottom: 16 }}>
+        <div className={ui.row}>
+          <div className={ui.label}>Username</div>
+          <div className={ui.input}>{user?.username || '—'}</div>
         </div>
-        <div className="bn-row">
-          <div className="bn-label">Email</div>
-          <div className="bn-input">{user?.email || '—'}</div>
+        <div className={ui.row}>
+          <div className={ui.label}>Email</div>
+          <div className={ui.input}>{user?.email || '—'}</div>
         </div>
-        <div className="bn-row">
-          <div className="bn-label">Role</div>
-          <div className="bn-input">{user?.is_admin ? 'Administrator' : 'User'}</div>
+        <div className={ui.row}>
+          <div className={ui.label}>Role</div>
+          <div className={ui.input}>{user?.is_admin ? 'Administrator' : 'User'}</div>
         </div>
         {user?.created_at && (
-          <div className="bn-row">
-            <div className="bn-label">Joined</div>
-            <div className="bn-input">{new Date(user.created_at).toLocaleDateString()}</div>
+          <div className={ui.row}>
+            <div className={ui.label}>Joined</div>
+            <div className={ui.input}>{new Date(user.created_at).toLocaleDateString()}</div>
           </div>
         )}
       </div>
 
-      <form className="bn-panel" onSubmit={changePassword}>
-        <div className="bn-label" style={{ marginBottom: 16 }}>Change password</div>
-        <div className="bn-row">
-          <div className="bn-label">Current password</div>
+      <form className={ui.panel} onSubmit={changePassword}>
+        <div className={ui.label} style={{ marginBottom: 16 }}>Change password</div>
+        <div className={ui.row}>
+          <div className={ui.label}>Current password</div>
           <input
             type="password"
-            className="bn-input"
+            className={ui.input}
             value={pw.current_password}
             onChange={(e) => setPw((p) => ({ ...p, current_password: e.target.value }))}
             required
             autoComplete="current-password"
           />
         </div>
-        <div className="bn-row">
-          <div className="bn-label">New password</div>
+        <div className={ui.row}>
+          <div className={ui.label}>New password</div>
           <input
             type="password"
-            className="bn-input"
+            className={ui.input}
             value={pw.new_password}
             onChange={(e) => setPw((p) => ({ ...p, new_password: e.target.value }))}
             required
@@ -91,11 +92,11 @@ export default function SettingsProfile() {
             autoComplete="new-password"
           />
         </div>
-        <div className="bn-row">
-          <div className="bn-label">Confirm new password</div>
+        <div className={ui.row}>
+          <div className={ui.label}>Confirm new password</div>
           <input
             type="password"
-            className="bn-input"
+            className={ui.input}
             value={pw.confirm}
             onChange={(e) => setPw((p) => ({ ...p, confirm: e.target.value }))}
             required
@@ -103,7 +104,7 @@ export default function SettingsProfile() {
             autoComplete="new-password"
           />
         </div>
-        <button type="submit" disabled={loadingPw} className="bn-submit">
+        <button type="submit" disabled={loadingPw} className={ui.submit}>
           {loadingPw ? 'Saving…' : 'Update password'}
         </button>
       </form>

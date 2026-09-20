@@ -12,6 +12,7 @@ import {
 import { adminApi } from '../services/api'
 import { cn, formatDate, shortAddress } from '../lib/utils'
 import { useAuthStore } from '../store/useAuthStore'
+import { ui } from '../components/piramid/ui'
 
 export default function Admin() {
   const me = useAuthStore((s) => s.user)
@@ -93,16 +94,14 @@ export default function Admin() {
   ]
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 animate-fade-in">
+    <div className={cn(ui.page, 'space-y-6')}>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-white/40">Control plane</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Admin</h1>
-          <p className="mt-1 text-sm text-white/45">
-            Manage users, roles, and platform activity
-          </p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-dimmer)]">Control plane</p>
+          <h1 className={cn(ui.pageTitle, 'mt-1 mb-0')}>Admin</h1>
+          <p className={cn(ui.sub, 'mb-0 mt-1')}>Manage users, roles, and platform activity</p>
         </div>
-        <button onClick={() => load()} className="x-btn-secondary" disabled={loading}>
+        <button onClick={() => load()} className={ui.ghostBtn} disabled={loading} style={{ flex: '0 0 auto' }}>
           <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
           Refresh
         </button>
@@ -110,12 +109,12 @@ export default function Admin() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((s) => (
-          <div key={s.label} className="x-card p-5">
+          <div key={s.label} className={cn(ui.card, 'p-5')}>
             <div className="flex items-center justify-between">
-              <p className="text-xs text-white/40">{s.label}</p>
-              <s.icon className="h-4 w-4 text-white/30" />
+              <p className="text-xs text-[var(--text-dimmer)]">{s.label}</p>
+              <s.icon className="h-4 w-4 text-[var(--text-dimmer)]" />
             </div>
-            <p className="mt-2 text-3xl font-semibold tracking-tight">
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--text)]">
               {s.value ?? '—'}
             </p>
           </div>
@@ -129,14 +128,14 @@ export default function Admin() {
           { label: 'DOGE wallets', value: stats?.wallets_doge },
           { label: 'ETH / USDT', value: stats?.wallets_eth },
         ].map((s) => (
-          <div key={s.label} className="x-card-solid px-4 py-3">
-            <p className="text-xs text-white/40">{s.label}</p>
-            <p className="mt-1 text-xl font-semibold">{s.value ?? '—'}</p>
+          <div key={s.label} className={cn(ui.card, 'px-4 py-3')}>
+            <p className="text-xs text-[var(--text-dimmer)]">{s.label}</p>
+            <p className="mt-1 text-xl font-semibold text-[var(--text)]">{s.value ?? '—'}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-1 rounded-full border border-white/10 bg-black/40 p-1 w-fit">
+      <div className="flex w-fit gap-1 rounded-full border border-[var(--line)] bg-[var(--muted-bg)] p-1">
         {[
           { id: 'users', label: 'Users' },
           { id: 'activity', label: 'Send log' },
@@ -146,7 +145,9 @@ export default function Admin() {
             onClick={() => setTab(t.id)}
             className={cn(
               'rounded-full px-4 py-1.5 text-xs font-medium transition',
-              tab === t.id ? 'bg-white text-black' : 'text-white/50 hover:text-white'
+              tab === t.id
+                ? 'bg-[var(--text)] text-[var(--bg)]'
+                : 'text-[var(--text-dim)] hover:text-[var(--text)]'
             )}
           >
             {t.label}
@@ -155,19 +156,19 @@ export default function Admin() {
       </div>
 
       {tab === 'users' && (
-        <div className="x-card overflow-hidden">
-          <div className="flex flex-wrap items-center gap-3 border-b border-white/[0.06] p-4">
+        <div className={cn(ui.card, 'overflow-hidden p-0')}>
+          <div className="flex flex-wrap items-center gap-3 border-b border-[var(--line)] p-4">
             <div className="relative min-w-[220px] flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-dimmer)]" />
               <input
-                className="x-input pl-10"
+                className={cn(ui.input, 'pl-10')}
                 placeholder="Search username, email, address…"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && load(q)}
               />
             </div>
-            <button onClick={() => load(q)} className="x-btn-secondary">
+            <button onClick={() => load(q)} className={ui.ghostBtn} style={{ flex: '0 0 auto' }}>
               Search
             </button>
           </div>
@@ -175,32 +176,32 @@ export default function Admin() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] text-xs uppercase tracking-wider text-white/35">
-                  <th className="px-4 py-3 font-medium">User</th>
-                  <th className="px-4 py-3 font-medium">Wallets</th>
-                  <th className="px-4 py-3 font-medium">Flags</th>
-                  <th className="px-4 py-3 font-medium">Joined</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                <tr>
+                  <th>User</th>
+                  <th>Wallets</th>
+                  <th>Flags</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.05]">
+              <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-white/[0.02]">
-                    <td className="px-4 py-3">
-                      <p className="font-medium">{u.username}</p>
-                      <p className="text-xs text-white/40">{u.email}</p>
-                      <p className="font-mono text-[10px] text-white/25">#{u.id}</p>
+                  <tr key={u.id}>
+                    <td>
+                      <p className="font-medium text-[var(--text)]">{u.username}</p>
+                      <p className="text-xs text-[var(--text-dimmer)]">{u.email}</p>
+                      <p className="font-mono text-[10px] text-[var(--text-dimmer)]">#{u.id}</p>
                     </td>
-                    <td className="px-4 py-3 font-mono text-[11px] text-white/55">
+                    <td className="font-mono text-[11px] text-[var(--text-dim)]">
                       <div>BTC {shortAddress(u.wallet_address_btc)}</div>
                       <div>LTC {shortAddress(u.wallet_address_ltc)}</div>
                       <div>DOGE {shortAddress(u.wallet_address_doge)}</div>
                       <div>ETH {shortAddress(u.wallet_address_eth)}</div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex flex-wrap gap-1">
                         {u.is_admin && (
-                          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                          <span className="rounded-full border border-[var(--line)] bg-[var(--muted-bg)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--text)]">
                             Admin
                           </span>
                         )}
@@ -208,30 +209,32 @@ export default function Admin() {
                           className={cn(
                             'rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide',
                             u.is_active !== false
-                              ? 'border-emerald-500/20 text-emerald-300/90'
-                              : 'border-red-500/20 text-red-300/90'
+                              ? 'border-[var(--green)]/25 bg-[var(--green-bg)] text-[var(--green)]'
+                              : 'border-[var(--red)]/25 bg-[var(--red-bg)] text-[var(--red)]'
                           )}
                         >
                           {u.is_active !== false ? 'Active' : 'Disabled'}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-white/40">
+                    <td className="text-xs text-[var(--text-dimmer)]">
                       {formatDate(u.created_at)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex flex-wrap gap-1.5">
                         <button
                           onClick={() => toggleAdmin(u)}
-                          className="x-btn-ghost px-2 py-1 text-xs"
+                          className={cn(ui.ghostBtn, 'px-2 py-1 text-xs')}
                           disabled={u.id === me?.id}
+                          style={{ flex: '0 0 auto' }}
                         >
                           {u.is_admin ? 'Revoke admin' : 'Make admin'}
                         </button>
                         <button
                           onClick={() => toggleActive(u)}
-                          className="x-btn-ghost px-2 py-1 text-xs"
+                          className={cn(ui.ghostBtn, 'px-2 py-1 text-xs')}
                           disabled={u.id === me?.id}
+                          style={{ flex: '0 0 auto' }}
                         >
                           {u.is_active !== false ? 'Disable' : 'Enable'}
                         </button>
@@ -248,7 +251,7 @@ export default function Admin() {
                 ))}
                 {users.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-white/35">
+                    <td colSpan={5} className="px-4 py-10 text-center text-[var(--text-dimmer)]">
                       No users found
                     </td>
                   </tr>
@@ -260,14 +263,14 @@ export default function Admin() {
       )}
 
       {tab === 'activity' && (
-        <div className="x-card overflow-hidden">
-          <div className="border-b border-white/[0.06] px-5 py-4">
-            <h2 className="text-sm font-medium">Sends initiated via CoinCloud</h2>
-            <p className="text-xs text-white/40">Local application log (not full chain history)</p>
+        <div className={cn(ui.card, 'overflow-hidden p-0')}>
+          <div className="border-b border-[var(--line)] px-5 py-4">
+            <h2 className="text-sm font-medium text-[var(--text)]">Sends initiated via Piramid</h2>
+            <p className="text-xs text-[var(--text-dimmer)]">Local application log (not full chain history)</p>
           </div>
-          <div className="divide-y divide-white/[0.05]">
+          <div className="divide-y divide-[var(--line)]">
             {txs.length === 0 && (
-              <p className="px-5 py-10 text-center text-sm text-white/35">No send logs yet</p>
+              <p className="px-5 py-10 text-center text-sm text-[var(--text-dimmer)]">No send logs yet</p>
             )}
             {txs.map((t) => (
               <div
@@ -275,15 +278,15 @@ export default function Admin() {
                 className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm"
               >
                 <div>
-                  <p className="font-medium">
+                  <p className="font-medium text-[var(--text)]">
                     {t.username}{' '}
-                    <span className="font-normal text-white/40">sent {t.amount} {t.coin}</span>
+                    <span className="font-normal text-[var(--text-dimmer)]">sent {t.amount} {t.coin}</span>
                   </p>
-                  <p className="font-mono text-[11px] text-white/35">
+                  <p className="font-mono text-[11px] text-[var(--text-dimmer)]">
                     → {shortAddress(t.recipient, 10, 8)} · {t.txid ? shortAddress(t.txid, 10, 8) : 'no txid'}
                   </p>
                 </div>
-                <div className="text-right text-xs text-white/40">
+                <div className="text-right text-xs text-[var(--text-dimmer)]">
                   <p>{formatDate(t.created_at)}</p>
                   <p className="capitalize">{t.status}</p>
                 </div>

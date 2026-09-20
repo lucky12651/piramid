@@ -1,6 +1,7 @@
 import { ExternalLink } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import BinancePage from '../components/layout/BinancePage'
+import { ui } from '../components/piramid/ui'
 
 const EXPLORE = [
   {
@@ -49,7 +50,7 @@ export default function Browser() {
       sub={
         <>
           Popular dApps and explorers.{' '}
-          <Link to="/app/connect" className="bn-link">
+          <Link to="/app/connect" className={ui.link}>
             Connect
           </Link>{' '}
           before you sign.

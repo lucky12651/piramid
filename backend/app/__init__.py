@@ -1,1 +1,1 @@
-"""CoinCloud FastAPI backend package."""
+"""Piramid FastAPI backend package."""

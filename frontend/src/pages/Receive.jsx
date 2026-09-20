@@ -4,7 +4,9 @@ import toast from 'react-hot-toast'
 import { walletApi } from '../services/api'
 import { copyText } from '../lib/utils'
 import { WALLET_COINS } from '../lib/coins'
-import CoinIcon from '../components/vortex/CoinIcon'
+import CoinIcon from '../components/piramid/CoinIcon'
+import { ui } from '../components/piramid/ui'
+import { cn } from '../lib/utils'
 import BinancePage, { Faq, TransferTabs } from '../components/layout/BinancePage'
 
 const NOTES = {
@@ -46,26 +48,26 @@ export default function Receive() {
       tabs={<TransferTabs />}
       aside={
         <>
-          <div className="bn-side">
+          <div className={ui.side}>
             <h3>Important</h3>
-            <div className="bn-warn">{NOTES[coin]} Sending the wrong asset or network can result in permanent loss.</div>
+            <div className={ui.warn}>{NOTES[coin]} Sending the wrong asset or network can result in permanent loss.</div>
           </div>
           <Faq
             items={[
               { q: 'How many confirmations are needed?', a: 'Deposits appear after the network confirms the transaction. BTC typically needs more confirmations than ETH.' },
-              { q: 'Can I reuse this address?', a: 'Yes. Your CoinCloud address for each coin stays the same.' },
+              { q: 'Can I reuse this address?', a: 'Yes. Your Piramid address for each coin stays the same.' },
               { q: 'USDT network?', a: 'USDT here is ERC-20 on Ethereum, using the same address as ETH.' },
             ]}
           />
         </>
       }
     >
-      <div className="bn-panel">
-        <div className="bn-row">
-          <div className="bn-label">Coin</div>
-          <div className="bn-coins">
+      <div className={ui.panel}>
+        <div className={ui.row}>
+          <div className={ui.label}>Coin</div>
+          <div className="flex flex-wrap gap-2">
             {WALLET_COINS.map((c) => (
-              <button key={c} type="button" className={`bn-coin${coin === c ? ' on' : ''}`} onClick={() => setCoin(c)}>
+              <button key={c} type="button" className={cn(ui.coin, coin === c && ui.coinOn)} onClick={() => setCoin(c)}>
                 <CoinIcon symbol={c} />
                 {c}
               </button>
@@ -73,14 +75,14 @@ export default function Receive() {
           </div>
         </div>
 
-        <div className="bn-row">
-          <div className="bn-label">Network</div>
-          <div className="bn-input" style={{ fontWeight: 700 }}>
+        <div className={ui.row}>
+          <div className={ui.label}>Network</div>
+          <div className={ui.input} style={{ fontWeight: 700 }}>
             {coin === 'USDT' ? 'Ethereum (ERC-20)' : coin === 'ETH' ? 'Ethereum' : coin === 'BTC' ? 'Bitcoin' : coin === 'LTC' ? 'Litecoin' : 'Dogecoin'}
           </div>
         </div>
 
-        <div className="bn-row" style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className={ui.row} style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <div style={{ background: '#fff', borderRadius: 12, padding: 12 }}>
             {address ? (
               <QRCodeSVG value={address} size={160} level="M" includeMargin={false} />
@@ -89,9 +91,9 @@ export default function Receive() {
             )}
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <div className="bn-label">Deposit address</div>
-            <div className="bn-addr">{address || 'Loading…'}</div>
-            <button type="button" className="bn-submit" style={{ marginTop: 12 }} onClick={onCopy} disabled={!address}>
+            <div className={ui.label}>Deposit address</div>
+            <div className={ui.addr}>{address || 'Loading…'}</div>
+            <button type="button" className={ui.submit} style={{ marginTop: 12 }} onClick={onCopy} disabled={!address}>
               {copied ? 'Copied' : 'Copy address'}
             </button>
           </div>

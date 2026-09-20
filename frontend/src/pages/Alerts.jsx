@@ -3,7 +3,9 @@ import toast from 'react-hot-toast'
 import { WALLET_COINS } from '../lib/coins'
 import { useWalletStore } from '../store/useWalletStore'
 import { formatUsd } from '../lib/utils'
-import CoinIcon from '../components/vortex/CoinIcon'
+import CoinIcon from '../components/piramid/CoinIcon'
+import { ui } from '../components/piramid/ui'
+import { cn } from '../lib/utils'
 import { useOutletContext } from 'react-router-dom'
 import BinancePage, { Faq } from '../components/layout/BinancePage'
 
@@ -48,10 +50,10 @@ export default function Alerts() {
         />
       }
     >
-      <form className="bn-panel" style={{ marginBottom: 16 }} onSubmit={onAdd}>
-        <div className="bn-row">
-          <div className="bn-label">Coin</div>
-          <select className="bn-input" value={symbol} onChange={(e) => setSymbol(e.target.value)}>
+      <form className={ui.panel} style={{ marginBottom: 16 }} onSubmit={onAdd}>
+        <div className={ui.row}>
+          <div className={ui.label}>Coin</div>
+          <select className={ui.input} value={symbol} onChange={(e) => setSymbol(e.target.value)}>
             {WALLET_COINS.map((c) => (
               <option key={c} value={c}>
                 {c} {priceMap[c] ? `· ${formatUsd(priceMap[c].price_usd)}` : ''}
@@ -59,22 +61,22 @@ export default function Alerts() {
             ))}
           </select>
         </div>
-        <div className="bn-row">
-          <div className="bn-label">Condition</div>
-          <select className="bn-input" value={dir} onChange={(e) => setDir(e.target.value)}>
+        <div className={ui.row}>
+          <div className={ui.label}>Condition</div>
+          <select className={ui.input} value={dir} onChange={(e) => setDir(e.target.value)}>
             <option value="above">Price goes above</option>
             <option value="below">Price goes below</option>
           </select>
         </div>
-        <div className="bn-row">
-          <div className="bn-label">Target (USD)</div>
-          <input className="bn-input" type="number" step="any" min="0" placeholder="0.00" value={target} onChange={(e) => setTarget(e.target.value)} />
+        <div className={ui.row}>
+          <div className={ui.label}>Target (USD)</div>
+          <input className={ui.input} type="number" step="any" min="0" placeholder="0.00" value={target} onChange={(e) => setTarget(e.target.value)} />
         </div>
-        <button type="submit" className="bn-submit">Create alert</button>
+        <button type="submit" className={ui.submit}>Create alert</button>
       </form>
 
-      <div className="bn-table-wrap">
-        <table className="bn-table">
+      <div className={ui.tableWrap}>
+        <table className="w-full min-w-[720px] border-collapse">
           <thead>
             <tr>
               <th>Coin</th>
@@ -103,7 +105,7 @@ export default function Alerts() {
                 <td>{priceMap[a.symbol] ? formatUsd(priceMap[a.symbol].price_usd) : '—'}</td>
                 <td>{a.triggered ? 'Triggered' : 'Watching'}</td>
                 <td>
-                  <button type="button" className="bn-link" style={{ color: 'var(--red)' }} onClick={() => removeAlert(a.id)}>
+                  <button type="button" className={ui.link} style={{ color: 'var(--red)' }} onClick={() => removeAlert(a.id)}>
                     Delete
                   </button>
                 </td>

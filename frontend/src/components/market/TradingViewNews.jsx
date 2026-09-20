@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { useUiTheme } from '../../lib/theme'
+import { mountTradingViewWidget } from '../../lib/tvWidget'
 
 /** Auto-refresh interval for latest headlines (ms) */
 const REFRESH_MS = 90_000 // 90 seconds
@@ -15,6 +17,7 @@ export default function TradingViewNews({
   showRefresh = true,
 }) {
   const containerRef = useRef(null)
+  const { tvTheme } = useUiTheme()
   const [tick, setTick] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState(() => new Date())
@@ -23,37 +26,29 @@ export default function TradingViewNews({
     const el = containerRef.current
     if (!el) return
 
-    el.innerHTML = ''
-    const widget = document.createElement('div')
-    widget.className = 'tradingview-widget-container__widget'
-    widget.style.height = '100%'
-    widget.style.width = '100%'
-    el.appendChild(widget)
-
-    // Cache-bust so TradingView fetches a fresh embed each remount
-    const script = document.createElement('script')
-    script.src = `https://s3.tradingview.com/external-embedding/embed-widget-timeline.js?v=${Date.now()}`
-    script.type = 'text/javascript'
-    script.async = true
-    script.innerHTML = JSON.stringify({
-      feedMode: 'market',
-      market: 'crypto',
-      isTransparent: true,
-      displayMode: 'regular',
-      width: '100%',
-      height: '100%',
-      colorTheme: 'dark',
-      locale: 'en',
-    })
-    el.appendChild(script)
+    const stop = mountTradingViewWidget(
+      el,
+      `https://s3.tradingview.com/external-embedding/embed-widget-timeline.js?v=${Date.now()}`,
+      {
+        feedMode: 'market',
+        market: 'crypto',
+        isTransparent: false,
+        displayMode: 'regular',
+        width: '100%',
+        height: '100%',
+        colorTheme: tvTheme,
+        theme: tvTheme,
+        locale: 'en',
+      }
+    )
     setLastUpdated(new Date())
-  }, [])
+    return stop
+  }, [tvTheme])
 
-  // Mount / remount whenever tick changes
   useEffect(() => {
-    mountWidget()
+    const stop = mountWidget()
     return () => {
-      if (containerRef.current) containerRef.current.innerHTML = ''
+      if (typeof stop === 'function') stop()
     }
   }, [tick, mountWidget])
 

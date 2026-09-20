@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { WALLET_COINS } from '../lib/coins'
 import { marketApi, walletApi } from '../services/api'
 import { formatUsd } from '../lib/utils'
+import { ui } from '../components/piramid/ui'
 import BinancePage, { Faq, TransferTabs } from '../components/layout/BinancePage'
 
 export default function Swap() {
@@ -48,9 +49,9 @@ export default function Swap() {
 
   return (
     <BinancePage
-      crumb="Convert"
-      title="Convert"
-      sub="Preview a live USD quote between assets in your wallet."
+      crumb="Trade"
+      title="Trade"
+      sub="Convert between assets with a live USD quote."
       tabs={<TransferTabs />}
       aside={
         <Faq
@@ -62,23 +63,23 @@ export default function Swap() {
         />
       }
     >
-      <form className="bn-panel" onSubmit={onSwap}>
-        <div className="bn-row">
-          <div className="bn-label">
+      <form className={ui.panel} onSubmit={onSwap}>
+        <div className={ui.row}>
+          <div className={ui.label}>
             From
-            <button type="button" className="bn-link" onClick={() => setAmount(String(bal || 0))}>
+            <button type="button" className={ui.link} onClick={() => setAmount(String(bal || 0))}>
               Max {bal} {from}
             </button>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input className="bn-input" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" />
-            <select className="bn-input" style={{ maxWidth: 120, fontWeight: 700 }} value={from} onChange={(e) => setFrom(e.target.value)}>
+            <input className={ui.input} placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" />
+            <select className={ui.input} style={{ maxWidth: 120, fontWeight: 700 }} value={from} onChange={(e) => setFrom(e.target.value)}>
               {WALLET_COINS.filter((c) => c !== to).map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
-          <div className="bn-hint" style={{ marginTop: 6 }}>{pay && fromPx ? formatUsd(pay * fromPx) : '—'}</div>
+          <div className={ui.hint} style={{ marginTop: 6 }}>{pay && fromPx ? formatUsd(pay * fromPx) : '—'}</div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 16px' }}>
@@ -95,24 +96,24 @@ export default function Swap() {
           </button>
         </div>
 
-        <div className="bn-row">
-          <div className="bn-label">To</div>
+        <div className={ui.row}>
+          <div className={ui.label}>To</div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input className="bn-input" readOnly value={out ? out.toFixed(6) : ''} placeholder="0.00" />
-            <select className="bn-input" style={{ maxWidth: 120, fontWeight: 700 }} value={to} onChange={(e) => setTo(e.target.value)}>
+            <input className={ui.input} readOnly value={out ? out.toFixed(6) : ''} placeholder="0.00" />
+            <select className={ui.input} style={{ maxWidth: 120, fontWeight: 700 }} value={to} onChange={(e) => setTo(e.target.value)}>
               {WALLET_COINS.filter((c) => c !== from).map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
-          <div className="bn-hint" style={{ marginTop: 6 }}>{out && toPx ? formatUsd(out * toPx) : '—'}</div>
+          <div className={ui.hint} style={{ marginTop: 6 }}>{out && toPx ? formatUsd(out * toPx) : '—'}</div>
         </div>
 
-        <div className="bn-warn">
+        <div className={ui.warn}>
           Rate 1 {from} = {rate ? rate.toFixed(6) : '—'} {to} · Slippage {slippage}%
         </div>
 
-        <button type="submit" className="bn-submit">Preview convert</button>
+        <button type="submit" className={ui.submit}>Preview convert</button>
       </form>
     </BinancePage>
   )

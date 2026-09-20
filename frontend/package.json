@@ -1,5 +1,5 @@
 {
-  "name": "coincloud-frontend",
+  "name": "piramid-frontend",
   "version": "2.0.0",
   "private": true,
   "type": "module",
@@ -27,5 +27,8 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "vite": "^5.1.0"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
   }
 }

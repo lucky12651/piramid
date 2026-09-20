@@ -1,4 +1,4 @@
-# CoinCloud — Multi-chain Crypto Wallet
+# Piramid — Multi-chain Crypto Wallet
 
 > **Full documentation:** see the [`docs/`](./docs/) folder  
 > (overview, architecture, database, API, frontend, wallets, setup)

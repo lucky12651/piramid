@@ -4,6 +4,7 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Portfolio from './pages/Portfolio'
 import Send from './pages/Send'
 import Receive from './pages/Receive'
 import Transactions from './pages/Transactions'
@@ -46,6 +47,7 @@ export default function App() {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="portfolio" element={<Portfolio />} />
         <Route path="send" element={<Send />} />
         <Route path="receive" element={<Receive />} />
         <Route path="transactions" element={<Transactions />} />

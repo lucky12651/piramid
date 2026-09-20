@@ -1,6 +1,6 @@
-# CoinCloud Documentation
+# Piramid Documentation
 
-Complete documentation for the **CoinCloud** multi-chain crypto wallet.
+Complete documentation for the **Piramid** multi-chain crypto wallet.
 
 | Document | Description |
 |----------|-------------|

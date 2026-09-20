@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { walletApi } from '../services/api'
 import { shortAddress } from '../lib/utils'
+import { ui } from '../components/piramid/ui'
 import BinancePage from '../components/layout/BinancePage'
 
 export default function Nfts() {
@@ -27,20 +28,20 @@ export default function Nfts() {
       sub={`Collectibles on ${address ? shortAddress(address, 8, 6) : 'your Ethereum address'}.`}
       wide
     >
-      {loading && <div className="bn-panel">Loading collectibles…</div>}
+      {loading && <div className={ui.panel}>Loading collectibles…</div>}
       {!loading && items.length === 0 && (
-        <div className="bn-panel" style={{ textAlign: 'center', padding: 48 }}>
+        <div className={ui.panel} style={{ textAlign: 'center', padding: 48 }}>
           <p style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>No NFTs yet</p>
           <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>
             ERC-721 / ERC-1155 tokens on this address appear here automatically.
           </p>
         </div>
       )}
-      <div className="nft-grid">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3.5">
         {items.map((n) => (
           <a
             key={`${n.contract}-${n.token_id}`}
-            className="nft-card"
+            className={ui.card}
             href={n.contract ? `https://opensea.io/assets/ethereum/${n.contract}/${n.token_id}` : '#'}
             target="_blank"
             rel="noreferrer"

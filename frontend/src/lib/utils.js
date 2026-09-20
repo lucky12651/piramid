@@ -35,7 +35,8 @@ export function formatUsd(value) {
   return n.toLocaleString(undefined, {
     style: 'currency',
     currency: 'USD',
-    maximumFractionDigits: n >= 1000 ? 0 : 2,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   })
 }
 
@@ -71,6 +72,8 @@ export function coinMeta(coin) {
     ETH: { name: 'Ethereum', color: 'from-indigo-400/20 to-indigo-600/5', accent: 'text-indigo-300' },
     DOGE: { name: 'Dogecoin', color: 'from-yellow-400/20 to-yellow-600/5', accent: 'text-yellow-300' },
     USDT: { name: 'Tether', color: 'from-emerald-400/20 to-emerald-600/5', accent: 'text-emerald-300' },
+    BNB: { name: 'BNB', color: 'from-yellow-400/20 to-yellow-600/5', accent: 'text-yellow-300' },
+    SOL: { name: 'Solana', color: 'from-emerald-400/20 to-cyan-500/5', accent: 'text-emerald-300' },
   }
   return map[(coin || '').toUpperCase()] || { name: coin, color: 'from-white/10 to-transparent', accent: 'text-white' }
 }

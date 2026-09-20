@@ -49,7 +49,7 @@ class Settings:
         "ETH_RPC_URL",
         "https://eth.llamarpc.com",
     )
-    APP_NAME: str = "CoinCloud"
+    APP_NAME: str = "Piramid"
 
     @property
     def is_postgres(self) -> bool:
