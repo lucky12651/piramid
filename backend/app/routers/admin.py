@@ -36,6 +36,7 @@ def stats(admin: User = Depends(get_current_admin), db: Session = Depends(get_db
 @router.get("/users", response_model=list[UserAdminView])
 def list_users(
     q: str | None = Query(None),
+    limit: int = Query(200, ge=1, le=500),
     admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
@@ -50,7 +51,7 @@ def list_users(
             | (User.wallet_address_eth.ilike(like))
             | (User.wallet_address_doge.ilike(like))
         )
-    return [UserAdminView.model_validate(u) for u in query.all()]
+    return [UserAdminView.model_validate(u) for u in query.limit(limit).all()]
 
 
 @router.get("/users/{user_id}", response_model=UserAdminView)

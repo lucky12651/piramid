@@ -88,8 +88,8 @@ export default function Register() {
               value={form.password}
               onChange={set('password')}
               required
-              minLength={6}
-              placeholder="Min. 6 characters"
+              minLength={8}
+              placeholder="Min. 8 characters"
             />
           </div>
           <label className="flex items-start gap-3 text-sm text-white/50">

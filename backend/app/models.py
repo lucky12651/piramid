@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -27,12 +27,13 @@ class User(Base):
     wallet_address_ltc = Column(String(150))
     wallet_address_doge = Column(String(150))
     wallet_address_eth = Column(String(150))
-    passphrase = Column(String(500))
-    passphrase_eth = Column(String(500))
-    private_master_key_wif_btc = Column(String(500))
-    private_master_key_wif_ltc = Column(String(500))
-    private_master_key_wif_doge = Column(String(500))
-    private_key_eth = Column(String(200))
+    passphrase = Column(Text)
+    passphrase_eth = Column(Text)
+    private_master_key_wif_btc = Column(Text)
+    private_master_key_wif_ltc = Column(Text)
+    private_master_key_wif_doge = Column(Text)
+    private_key_eth = Column(Text)
+    token_version = Column(Integer, default=0, nullable=False)
 
     created_at = Column(DateTime, default=utcnow)
     last_login = Column(DateTime, nullable=True)

@@ -11,16 +11,23 @@ export default function SettingsSecurity() {
   const [bundle, setBundle] = useState(null)
   const [showSecrets, setShowSecrets] = useState(false)
   const [loadingPhrase, setLoadingPhrase] = useState(false)
+  const [password, setPassword] = useState('')
 
-  const loadSecrets = async () => {
+  const loadSecrets = async (e) => {
+    e?.preventDefault?.()
+    if (!password) {
+      toast.error('Enter your password to reveal recovery data')
+      return
+    }
     setLoadingPhrase(true)
     try {
-      const { data } = await authApi.recoveryPhrase()
+      const { data } = await authApi.recoveryPhrase(password)
       setBundle(data)
       setShowSecrets(true)
+      setPassword('')
       useWalletStore.getState().markBackupOk()
-    } catch {
-      toast.error('Unable to load recovery data')
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Unable to load recovery data')
     } finally {
       setLoadingPhrase(false)
     }
@@ -52,7 +59,7 @@ export default function SettingsSecurity() {
           <Faq
             items={[
               { q: 'What should I back up?', a: 'Write down both phrases (BTC/LTC/DOGE and ETH/USDT) offline. Do not screenshot them.' },
-              { q: 'Is this stored on Piramid servers in plaintext?', a: 'Reveal only on this device after you sign in. Treat the values as the master key to the wallet.' },
+              { q: 'How are keys stored?', a: 'Secrets are encrypted at rest in the database and only revealed after you confirm your password. Treat them as the master key to the wallet.' },
             ]}
           />
         </>
@@ -69,9 +76,23 @@ export default function SettingsSecurity() {
         </p>
 
         {!showSecrets ? (
-          <button type="button" onClick={loadSecrets} disabled={loadingPhrase} className={ui.submit}>
-            {loadingPhrase ? 'Loading…' : 'Reveal recovery data'}
-          </button>
+          <form onSubmit={loadSecrets}>
+            <div className={ui.row}>
+              <div className={ui.label}>Account password</div>
+              <input
+                type="password"
+                className={ui.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="Confirm it is you"
+              />
+            </div>
+            <button type="submit" disabled={loadingPhrase} className={ui.submit}>
+              {loadingPhrase ? 'Loading…' : 'Reveal recovery data'}
+            </button>
+          </form>
         ) : (
           <div>
             <SecretBlock

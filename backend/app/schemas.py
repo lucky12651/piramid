@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr, Field
 class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=80)
     email: EmailStr
-    password: str = Field(min_length=6, max_length=128)
+    password: str = Field(min_length=8, max_length=72)
     agree_terms: bool = True
 
 
@@ -66,9 +66,9 @@ class BalanceResponse(BaseModel):
 
 class SendRequest(BaseModel):
     coin: str = "BTC"
-    address: str
-    amount: float
-    fee: Optional[float] = None
+    address: str = Field(min_length=8, max_length=128)
+    amount: float = Field(gt=0, le=21_000_000)
+    fee: Optional[float] = Field(default=None, ge=0, le=100)
 
 
 class SendResponse(BaseModel):
@@ -94,7 +94,32 @@ class TransactionItem(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
-    new_password: str = Field(min_length=6, max_length=128)
+    new_password: str = Field(min_length=8, max_length=72)
+
+
+class RevealSecretsRequest(BaseModel):
+    password: str
+
+
+class AddressCheckRequest(BaseModel):
+    coin: str
+    address: str
+
+
+class AddressCheckResponse(BaseModel):
+    ok: bool
+    coin: str
+    address: str
+    error: Optional[str] = None
+
+
+class FeeEstimateResponse(BaseModel):
+    coin: str
+    fee: Optional[float] = None
+    unit: str = ""
+    note: Optional[str] = None
+    gwei: Optional[float] = None
+    transfer_eth: Optional[float] = None
 
 
 class AdminUpdateUserRequest(BaseModel):

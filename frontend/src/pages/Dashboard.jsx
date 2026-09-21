@@ -51,11 +51,24 @@ export default function Dashboard() {
   const [, setNow] = useState(Date.now())
   const [tool, setTool] = useState('cross')
   const chartCardRef = useRef(null)
+  const netBtnRef = useRef(null)
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15_000)
     return () => clearInterval(id)
   }, [])
+
+  useEffect(() => {
+    if (!netOpen && !intervalOpen) return undefined
+    const onDoc = (e) => {
+      if (netBtnRef.current && !netBtnRef.current.contains(e.target)) setNetOpen(false)
+      if (!e.target.closest?.('[data-interval-toggle]') && !e.target.closest?.('[data-interval-menu]')) {
+        setIntervalOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', onDoc)
+    return () => document.removeEventListener('pointerdown', onDoc)
+  }, [netOpen, intervalOpen])
 
   const loadPrices = () => {
     marketApi
@@ -208,8 +221,9 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="grid gap-[18px] px-7 py-[22px] pb-8 max-[860px]:px-4 max-[860px]:pb-[110px] lg:grid-cols-[320px_1fr_280px] lg:[grid-template-areas:'balance_crypto_crypto'_'chart_chart_portfolio']">
-        <section className={cn(ui.card, 'flex flex-col lg:[grid-area:balance]')}>
+      <div className={ui.page}>
+      <div className="grid gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)_minmax(240px,300px)] lg:[grid-template-areas:'balance_crypto_crypto'_'chart_chart_portfolio']">
+        <section className={cn(ui.card, 'relative z-10 flex flex-col overflow-visible lg:[grid-area:balance]')}>
           <div className="mb-[18px] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className={ui.cardIcon}>
@@ -229,15 +243,23 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="mb-[18px] flex items-start justify-between">
-            <div className={ui.amount}>{mask(formatUsd(totalUsd))}</div>
-            <button type="button" className="relative flex items-center gap-1 rounded-full bg-[var(--muted-bg)] px-2.5 py-1.5 text-[12.5px] font-bold text-[var(--text-dim)]" onClick={() => setNetOpen((v) => !v)}>
-              {network.symbol}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
+          <div className="mb-5 flex items-start justify-between gap-3">
+            <div className={cn(ui.amount, 'min-w-0 break-all')}>{mask(formatUsd(totalUsd))}</div>
+            <div className="relative shrink-0" ref={netBtnRef}>
+              <button
+                type="button"
+                className="flex h-8 items-center gap-1 rounded-full bg-[var(--muted-bg)] px-3 text-[12px] font-bold text-[var(--text-dim)]"
+                onClick={() => setNetOpen((v) => !v)}
+                aria-expanded={netOpen}
+                aria-haspopup="listbox"
+              >
+                {network.symbol}
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
               {netOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-[180px] rounded-xl border border-[var(--line)] bg-[var(--sidebar-bg)] p-1.5 light:bg-white" onClick={(e) => e.stopPropagation()}>
+                <div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-xl border border-[var(--line)] bg-[var(--sidebar-bg)] p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.4)] light:bg-white light:shadow-[0_8px_24px_rgba(26,31,22,0.12)]" role="listbox">
                   {NETWORKS.map((n) => (
                     <button
                       key={n.id}
@@ -255,7 +277,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               )}
-            </button>
+            </div>
           </div>
 
           <div className="mb-5 flex flex-nowrap gap-3.5">
@@ -371,7 +393,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className={cn(ui.card, 'flex min-h-[460px] flex-col p-0 lg:[grid-area:chart]')} ref={chartCardRef}>
+        <section className={cn(ui.card, 'flex min-h-[460px] flex-col overflow-hidden p-0 lg:[grid-area:chart]')} ref={chartCardRef}>
           <div className="flex flex-wrap items-center gap-2.5 border-b border-[var(--line)] px-3.5 py-2.5">
             <div className="flex items-center gap-2.5">
               <CoinIcon symbol={chartSymbol} />
@@ -398,19 +420,19 @@ export default function Dashboard() {
             </div>
             <div className="h-[22px] w-px bg-[var(--line)]" />
             <div className={cn(ui.tb, 'relative')}>
-              <button type="button" onClick={() => setIntervalOpen((v) => !v)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button type="button" data-interval-toggle onClick={() => setIntervalOpen((v) => !v)} className="flex items-center gap-1.5">
                 {intervalLabel}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </button>
               {intervalOpen && (
-                <div className="coin-chip-menu" style={{ left: 0, right: 'auto' }}>
+                <div data-interval-menu className="absolute left-0 top-full z-40 mt-1 min-w-[92px] rounded-xl border border-[var(--line)] bg-[var(--sidebar-bg)] p-1 light:bg-white">
                   {INTERVALS.map((i) => (
                     <button
                       key={i.value}
                       type="button"
-                      className={i.value === interval ? 'active' : ''}
+                      className={cn('block w-full rounded-lg px-3 py-1.5 text-left text-[12px] font-semibold', i.value === interval && 'bg-[var(--hover)]')}
                       onClick={() => {
                         setIntervalId(i.value)
                         setIntervalOpen(false)
@@ -580,7 +602,7 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <div className="min-h-[380px] min-w-0 flex-1 overflow-hidden bg-[var(--chart-bg)]">
+            <div className="tv-embed min-h-[380px] min-w-0 flex-1">
               <TradingViewChart fill mode="advanced" symbol={chartSymbol} interval={interval} />
             </div>
           </div>
@@ -694,51 +716,26 @@ export default function Dashboard() {
 
           <div className={cn(ui.card, 'overflow-hidden')}>
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-[13.5px] font-bold">Yearly Performance</span>
-              <span className="text-[var(--text-dim)]">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 8v4l3 2" />
-                </svg>
-              </span>
+              <span className="text-[13.5px] font-bold">24h change</span>
+              <span className="text-[11px] text-[var(--text-dimmer)]">{today}</span>
             </div>
-            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-[var(--ink)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--ink)]" />
-              {pnl24 >= 0 ? 'High' : 'Low'} • {today}
+            <div className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold', pnl24 >= 0 ? 'bg-[var(--green-bg)] text-gain' : 'bg-red-500/15 text-loss')}>
+              {pnl24 >= 0 ? 'Up' : 'Down'}
             </div>
-            <div className={ui.amount}>{hideBalances ? '••••' : formatUsd(Math.abs(pnl24))}</div>
-            <svg className="mt-2 h-[46px] w-full" viewBox="0 0 260 46" preserveAspectRatio="none">
-              <polyline
-                points="0,36 20,30 40,33 60,22 80,26 100,14 120,20 140,10 160,16 180,6 200,12 220,4 240,9 260,2"
-                fill="none"
-                stroke={pnl24 >= 0 ? '#3ddc84' : '#f36969'}
-                strokeWidth="2"
-              />
-              <polygon
-                points="0,36 20,30 40,33 60,22 80,26 100,14 120,20 140,10 160,16 180,6 200,12 220,4 240,9 260,2 260,46 0,46"
-                fill={pnl24 >= 0 ? 'url(#yg)' : 'url(#yr)'}
-                opacity="0.25"
-              />
-              <defs>
-                <linearGradient id="yg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3ddc84" />
-                  <stop offset="100%" stopColor="#3ddc84" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="yr" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f36969" />
-                  <stop offset="100%" stopColor="#f36969" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <div className={ui.amount}>{hideBalances ? '••••' : formatUsd(pnl24)}</div>
+            <p className="mt-2 text-[12px] text-[var(--text-dimmer)]">
+              Estimated from current holdings and 24h market moves. Not a realized P&amp;L.
+            </p>
           </div>
         </aside>
       </div>
-      <div className="px-7 pb-6 text-center text-[11px] text-[var(--text-dimmer)] max-[860px]:pb-[110px]">Piramid — live balances, alerts, and on-chain activity</div>
+      <p className="mt-6 text-center text-[11px] text-[var(--text-dimmer)]">Piramid — live balances, alerts, and on-chain activity</p>
+      </div>
 
       {picked && (
         <>
           <button type="button" className="fixed inset-0 z-[80] bg-black/55" onClick={() => setPicked(null)} aria-label="Close" />
-          <aside className={cn(ui.card, 'fixed bottom-0 right-0 top-0 z-[90] w-[min(380px,100%)] overflow-auto rounded-none')}>
+          <aside className={cn(ui.card, 'fixed bottom-0 right-0 top-0 z-[90] w-[min(380px,100%)] overflow-auto rounded-none rounded-l-2xl')}>
             <div className="mb-[18px] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <CoinIcon symbol={picked.symbol} />

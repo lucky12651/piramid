@@ -8,8 +8,7 @@ const baseURL = rawBase === '/api' ? '' : rawBase
 const api = axios.create({
   baseURL,
   headers: { 'Content-Type': 'application/json' },
-  // Wallet creation (bitcoinlib) can take a while
-  timeout: 180_000,
+  timeout: 45_000,
 })
 
 api.interceptors.request.use((config) => {
@@ -24,10 +23,15 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
+      const url = String(err.config?.url || '')
+      if (url.includes('/api/auth/login')) {
+        return Promise.reject(err)
+      }
       localStorage.removeItem('cc_token')
       localStorage.removeItem('cc_user')
-      if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
-        // soft redirect only for protected flows
+      const path = window.location.pathname
+      if (path.startsWith('/app')) {
+        window.location.assign('/login')
       }
     }
     return Promise.reject(err)
@@ -35,21 +39,23 @@ api.interceptors.response.use(
 )
 
 export const authApi = {
-  register: (data) => api.post('/api/auth/register', data),
-  login: (data) => api.post('/api/auth/login', data),
+  register: (data) => api.post('/api/auth/register', data, { timeout: 180_000 }),
+  login: (data) => api.post('/api/auth/login', data, { timeout: 30_000 }),
   me: () => api.get('/api/auth/me'),
   changePassword: (data) => api.post('/api/auth/change-password', data),
-  recoveryPhrase: () => api.get('/api/auth/recovery-phrase'),
+  recoveryPhrase: (password) => api.post('/api/auth/recovery-phrase', { password }),
 }
 
 export const walletApi = {
   addresses: () => api.get('/api/wallet/addresses'),
   balance: (coin) => api.get('/api/wallet/balance', { params: { coin } }),
   balances: () => api.get('/api/wallet/balances'),
-  send: (data) => api.post('/api/wallet/send', data),
+  send: (data) => api.post('/api/wallet/send', data, { timeout: 90_000 }),
   transactions: (coin) => api.get('/api/wallet/transactions', { params: { coin } }),
   sendHistory: () => api.get('/api/wallet/send-history'),
   gas: () => api.get('/api/wallet/gas'),
+  estimateFee: (coin) => api.get('/api/wallet/estimate-fee', { params: { coin } }),
+  validateAddress: (data) => api.post('/api/wallet/validate-address', data),
   nfts: () => api.get('/api/wallet/nfts'),
 }
 

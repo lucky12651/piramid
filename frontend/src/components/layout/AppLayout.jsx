@@ -246,7 +246,6 @@ export default function AppLayout() {
   }
 
   const initials = ((user?.username || 'U').slice(0, 2) || 'U').toUpperCase()
-  const isDashboard = location.pathname === '/app' || location.pathname === '/app/'
   const showSearch = query.trim().length > 0
 
   if (locked) {
@@ -325,10 +324,10 @@ export default function AppLayout() {
                 <path d="M13 2 4 14h7l-1 8 10-13h-7l0-7z" />
               </svg>
             </div>
-            <div className="mb-0.5 text-[13px] font-bold">Premium Features</div>
-            <div className="mb-2.5 text-[11.5px] leading-snug text-[var(--text-dimmer)]">Unlock advanced indicators, deeper watchlists, and priority execution.</div>
-            <Link to="/app/settings/profile" className={cn(ui.submit, 'mt-0 block py-2 text-center text-xs')}>
-              Upgrade now
+            <div className="mb-0.5 text-[13px] font-bold">Backup your wallet</div>
+            <div className="mb-2.5 text-[11.5px] leading-snug text-[var(--text-dimmer)]">Write down your recovery phrase offline. Anyone with it can move your funds.</div>
+            <Link to="/app/settings/security" className={cn(ui.submit, 'mt-0 block py-2 text-center text-xs')}>
+              Open security
             </Link>
           </div>
         )}
@@ -486,7 +485,7 @@ export default function AppLayout() {
             )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-[#d7f24c] p-1 shadow-glow" role="group" aria-label="Theme">
+          <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-[#d7f24c] p-1 shadow-[0_2px_10px_rgba(215,242,76,0.28)]" role="group" aria-label="Theme">
             <button
               type="button"
               className={cn(
@@ -523,7 +522,7 @@ export default function AppLayout() {
           </div>
         </header>
 
-        <div className={isDashboard ? '' : 'min-w-0 flex-1'}>
+        <div className="min-w-0 flex-1">
           <Outlet context={{ searchQuery: query, prices }} />
         </div>
 

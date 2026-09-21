@@ -35,20 +35,22 @@ export default function BinancePage({
 }) {
   return (
     <div className={ui.page}>
-      <div className={ui.crumb}>
-        <Link to="/app">Piramid</Link>
-        <span>/</span>
-        <span>{crumb}</span>
-      </div>
-      <h1 className={ui.pageTitle}>{title}</h1>
-      {sub && <p className={ui.sub}>{sub}</p>}
+      <header className="mb-6">
+        <div className={ui.crumb}>
+          <Link to="/app">Piramid</Link>
+          <span>/</span>
+          <span>{crumb}</span>
+        </div>
+        <h1 className={cn(ui.pageTitle, 'mb-1')}>{title}</h1>
+        {sub && <p className={cn(ui.sub, 'mb-0')}>{sub}</p>}
+      </header>
       {tabs}
       {wide || !aside ? (
         children
       ) : (
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
-          <div>{children}</div>
-          <aside className="flex flex-col gap-4">{aside}</aside>
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
+          <div className="min-w-0">{children}</div>
+          <aside className="flex min-w-0 flex-col gap-4">{aside}</aside>
         </div>
       )}
     </div>

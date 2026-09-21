@@ -2,8 +2,10 @@ import { useEffect, useRef } from 'react'
 import { useUiTheme } from '../../lib/theme'
 import { mountTradingViewWidget } from '../../lib/tvWidget'
 
+const DEFAULT_HEIGHT = 560
+
 /** TradingView Market Overview — crypto tab */
-export default function MarketOverview({ height = 420 }) {
+export default function MarketOverview({ height = DEFAULT_HEIGHT }) {
   const containerRef = useRef(null)
   const { light, tvTheme, backgroundColor } = useUiTheme()
 
@@ -13,13 +15,11 @@ export default function MarketOverview({ height = 420 }) {
       'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',
       {
         colorTheme: tvTheme,
-        theme: tvTheme,
         dateRange: '12M',
         showChart: true,
         locale: 'en',
         width: '100%',
-        height: '100%',
-        largeChartUrl: '',
+        height,
         isTransparent: false,
         showSymbolLogo: true,
         showFloatingTooltip: true,
@@ -47,12 +47,12 @@ export default function MarketOverview({ height = 420 }) {
         ],
       }
     )
-  }, [light, tvTheme])
+  }, [light, tvTheme, height])
 
   return (
     <div
-      key={tvTheme}
-      className="tradingview-widget-container h-full w-full overflow-hidden rounded-2xl"
+      key={`${tvTheme}-${height}`}
+      className="tv-embed tradingview-widget-container w-full"
       style={{ height, background: backgroundColor }}
       ref={containerRef}
     />

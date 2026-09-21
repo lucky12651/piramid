@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import toast from 'react-hot-toast'
-import { Check, Link2, QrCode, Shield, Unplug } from 'lucide-react'
-import { QRCodeSVG } from 'qrcode.react'
+import { Check, Link2, Shield, Unplug } from 'lucide-react'
 import { useAuthStore } from '../store/useAuthStore'
 import { useWalletStore } from '../store/useWalletStore'
-import { shortAddress } from '../lib/utils'
+import { cn, shortAddress } from '../lib/utils'
 import BinancePage from '../components/layout/BinancePage'
+import { ui } from '../components/piramid/ui'
 
 const DEMO_DAPPS = [
   {
@@ -34,10 +34,7 @@ const DEMO_DAPPS = [
   },
 ]
 
-/**
- * MetaMask-style dApp connection + WalletConnect-like session UI.
- * Sessions are stored locally (WalletConnect URI mock for UX parity).
- */
+/** Local allow-list of sites you marked on this device. Not a live WalletConnect session. */
 export default function Connect() {
   const user = useAuthStore((s) => s.user)
   const network = useWalletStore((s) => s.getNetwork())
@@ -46,12 +43,6 @@ export default function Connect() {
   const disconnectSite = useWalletStore((s) => s.disconnectSite)
   const [pending, setPending] = useState(null)
   const [manualOrigin, setManualOrigin] = useState('')
-
-  const wcUri = useMemo(() => {
-    // Demo WalletConnect-style URI (not a live WC session)
-    const topic = btoa(`${user?.id || '0'}-${Date.now()}`).slice(0, 16)
-    return `wc:${topic}@2?relay-protocol=irn&symKey=demo${(user?.username || 'user').slice(0, 8)}`
-  }, [user?.id, user?.username, pending])
 
   const requestConnect = (dapp) => {
     setPending(dapp)
@@ -97,88 +88,54 @@ export default function Connect() {
   }
 
   return (
-    <BinancePage crumb="Connect" title="Connect" sub="Link dApps. Sessions stay on this device.">
-
-      {/* WalletConnect-style card */}
-      <div className="x-card mb-4 p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3396FF]/15 text-[#3396FF]">
-            <QrCode className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-medium">WalletConnect</h2>
-            <p className="mt-0.5 text-xs text-white/40">
-              Share this session URI with a WalletConnect-enabled dApp (demo mode)
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-          <div className="rounded-2xl border border-white/10 bg-white p-3">
-            <QRCodeSVG value={wcUri} size={140} level="M" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="break-all rounded-xl border border-white/10 bg-black/50 p-3 font-mono text-[11px] text-white/60">
-              {wcUri}
-            </p>
-            <button
-              type="button"
-              className="x-btn-secondary mt-3 text-xs"
-              onClick={async () => {
-                await navigator.clipboard.writeText(wcUri)
-                toast.success('URI copied')
-              }}
-            >
-              Copy URI
-            </button>
-          </div>
-        </div>
+    <BinancePage crumb="Connect" title="Connected sites" sub="A local allow-list on this device. Piramid does not open a live WalletConnect session.">
+      <div className={cn(ui.warn, 'mb-6')}>
+        Marking a site here does not sign transactions in that dApp. Use Withdraw in Piramid for real on-chain sends.
       </div>
 
-      {/* Manual connect */}
-      <div className="x-card mb-4 p-5">
+      <div className={cn(ui.card, 'mb-4')}>
         <h2 className="flex items-center gap-2 text-sm font-medium">
-          <Link2 className="h-4 w-4 text-white/50" /> Connect a site
+          <Link2 className="h-4 w-4 text-[var(--text-dim)]" /> Connect a site
         </h2>
         <div className="mt-3 flex gap-2">
           <input
-            className="x-input"
+            className={ui.input}
             placeholder="https://app.example.com"
             value={manualOrigin}
             onChange={(e) => setManualOrigin(e.target.value)}
           />
-          <button type="button" onClick={connectManual} className="x-btn-primary shrink-0">
+          <button type="button" onClick={connectManual} className={cn(ui.submit, 'mt-0 w-auto shrink-0 px-4')}>
             Connect
           </button>
         </div>
       </div>
 
-      {/* Popular dApps */}
-      <div className="x-card mb-4 overflow-hidden">
-        <div className="border-b border-white/[0.06] px-5 py-3">
+      <div className={cn(ui.card, 'mb-4 overflow-hidden p-0')}>
+        <div className="border-b border-[var(--line)] px-5 py-3">
           <h2 className="text-sm font-medium">Popular dApps</h2>
-          <p className="text-[11px] text-white/35">One-tap connection request</p>
+          <p className="text-[11px] text-[var(--text-dimmer)]">One-tap connection request</p>
         </div>
-        <div className="divide-y divide-white/[0.05]">
+        <div className="divide-y divide-[var(--line)]">
           {DEMO_DAPPS.map((d) => {
             const active = connectedSites.some((s) => s.origin === d.origin)
             return (
               <div key={d.origin} className="flex items-center gap-3 px-5 py-3.5">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-lg">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--muted-bg)] text-lg">
                   {d.icon}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{d.name}</p>
-                  <p className="truncate text-xs text-white/35">{d.origin}</p>
+                  <p className="truncate text-xs text-[var(--text-dimmer)]">{d.origin}</p>
                 </div>
                 {active ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-300">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--green-bg)] px-2.5 py-1 text-[11px] font-semibold text-gain">
                     <Check className="h-3 w-3" /> Connected
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => requestConnect(d)}
-                    className="x-btn-secondary px-3 py-1.5 text-xs"
+                    className={cn(ui.ghostBtn, 'h-9 flex-none px-3 text-xs')}
                   >
                     Connect
                   </button>
@@ -190,28 +147,28 @@ export default function Connect() {
       </div>
 
       {/* Connected sites */}
-      <div className="x-card overflow-hidden">
-        <div className="border-b border-white/[0.06] px-5 py-3">
+      <div className={cn(ui.card, 'overflow-hidden p-0')}>
+        <div className="border-b border-[var(--line)] px-5 py-3">
           <h2 className="text-sm font-medium">Connected sites</h2>
-          <p className="text-[11px] text-white/35">
+          <p className="text-[11px] text-[var(--text-dimmer)]">
             {connectedSites.length} site{connectedSites.length === 1 ? '' : 's'}
           </p>
         </div>
         {connectedSites.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-white/35">
+          <p className="px-5 py-10 text-center text-sm text-[var(--text-dimmer)]">
             No connected sites yet
           </p>
         ) : (
-          <div className="divide-y divide-white/[0.05]">
+          <div className="divide-y divide-[var(--line)]">
             {connectedSites.map((s) => (
               <div key={s.origin} className="flex items-center gap-3 px-5 py-3.5">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.06] text-lg">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--muted-bg)] text-lg">
                   {s.icon || '🔗'}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{s.name}</p>
-                  <p className="truncate text-xs text-white/35">{s.origin}</p>
-                  <p className="mt-0.5 font-mono text-[10px] text-white/25">
+                  <p className="truncate text-xs text-[var(--text-dimmer)]">{s.origin}</p>
+                  <p className="mt-0.5 font-mono text-[10px] text-[var(--text-dimmer)]">
                     {shortAddress(s.address)} · {s.network}
                   </p>
                 </div>
@@ -221,7 +178,7 @@ export default function Connect() {
                     disconnectSite(s.origin)
                     toast.success(`Disconnected ${s.name}`)
                   }}
-                  className="x-btn-danger px-2.5 py-1.5 text-xs"
+                  className="inline-flex h-9 items-center rounded-xl border border-red-500/30 bg-[var(--red-bg)] px-2.5 text-xs text-loss"
                 >
                   <Unplug className="h-3.5 w-3.5" />
                 </button>
@@ -234,39 +191,39 @@ export default function Connect() {
       {/* Connection approval modal */}
       {pending && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0a0a0a] p-6 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-[var(--line)] bg-[var(--sidebar-bg)] p-6 shadow-2xl">
             <div className="text-center">
               <span className="text-4xl">{pending.icon}</span>
               <h3 className="mt-3 text-lg font-semibold">{pending.name}</h3>
-              <p className="mt-1 text-xs text-white/40">{pending.origin}</p>
-              <p className="mt-4 text-sm text-white/60">
+              <p className="mt-1 text-xs text-[var(--text-dimmer)]">{pending.origin}</p>
+              <p className="mt-4 text-sm text-[var(--text-dim)]">
                 wants to connect to your Piramid wallet
               </p>
             </div>
 
-            <div className="mt-5 space-y-2 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 text-xs text-white/55">
-              <p className="flex items-center gap-2 font-medium text-white/80">
+            <div className="mt-5 space-y-2 rounded-2xl border border-[var(--line)] bg-[var(--muted-bg)] p-4 text-xs text-[var(--text-dim)]">
+              <p className="flex items-center gap-2 font-medium text-[var(--text)]">
                 <Shield className="h-4 w-4" /> Permissions
               </p>
               <ul className="list-inside list-disc space-y-1 pl-1">
                 <li>View your account address</li>
                 <li>Request transaction approvals</li>
                 {(pending.permissions || []).map((p) => (
-                  <li key={p} className="font-mono text-[10px] text-white/35">
+                  <li key={p} className="font-mono text-[10px] text-[var(--text-dimmer)]">
                     {p}
                   </li>
                 ))}
               </ul>
-              <p className="pt-2 text-white/40">
-                Network: <span className="text-white/70">{network.name}</span>
+              <p className="pt-2 text-[var(--text-dimmer)]">
+                Network: <span className="text-[var(--text)]">{network.name}</span>
               </p>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-2">
-              <button type="button" onClick={reject} className="x-btn-secondary py-3">
+              <button type="button" onClick={reject} className={ui.ghostBtn}>
                 Reject
               </button>
-              <button type="button" onClick={approve} className="x-btn-primary py-3">
+              <button type="button" onClick={approve} className={ui.limeBtn}>
                 Connect
               </button>
             </div>

@@ -48,14 +48,14 @@ export default function Transactions() {
         ))}
       </div>
 
-      <div className={ui.tableWrap}>
-        <table className="w-full min-w-[720px] border-collapse">
+      <div className={cn(ui.tableWrap, 'overflow-x-auto')}>
+        <table className="w-full min-w-[640px] border-collapse">
           <thead>
             <tr>
               <th>Time</th>
               <th>Type</th>
               <th>Coin</th>
-              <th>Amount</th>
+              <th className="num">Amount</th>
               <th>TxID</th>
               <th>Status</th>
             </tr>
@@ -78,7 +78,7 @@ export default function Transactions() {
                   <td>{formatDate(tx.date)}</td>
                   <td>{recv ? 'Deposit' : 'Withdraw'}</td>
                   <td>{tx.coin}</td>
-                  <td style={{ color: recv ? 'var(--green)' : 'var(--text)', fontWeight: 700 }}>
+                  <td className="num" style={{ color: recv ? 'var(--green)' : 'var(--text)', fontWeight: 700 }}>
                     {recv ? '+' : '−'}
                     {formatBalance(tx.amount)} {tx.coin}
                   </td>
@@ -87,7 +87,17 @@ export default function Transactions() {
                       {shortAddress(tx.txid, 10, 8)} <ExternalLink size={11} />
                     </a>
                   </td>
-                  <td>{tx.status}{tx.confirmations ? ` · ${tx.confirmations} conf` : ''}</td>
+                  <td>
+                    <span className={cn(
+                      'rounded-full px-2 py-0.5 text-[11px] font-bold',
+                      (tx.status || '').includes('fail') ? 'bg-red-500/15 text-loss'
+                        : (tx.status || '') === 'mempool' || (tx.status || '') === 'broadcast' ? 'bg-yellow-500/15 text-yellow-300'
+                        : 'bg-[var(--green-bg)] text-gain'
+                    )}>
+                      {tx.status || 'unknown'}
+                    </span>
+                    {tx.confirmations ? ` · ${tx.confirmations} conf` : ''}
+                  </td>
                 </tr>
               )
             })}

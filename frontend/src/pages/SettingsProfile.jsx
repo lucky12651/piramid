@@ -23,8 +23,10 @@ export default function SettingsProfile() {
         current_password: pw.current_password,
         new_password: pw.new_password,
       })
-      toast.success('Password updated')
+      toast.success('Password updated. Please sign in again.')
       setPw({ current_password: '', new_password: '', confirm: '' })
+      useAuthStore.getState().logout()
+      window.location.assign('/login')
     } catch (err) {
       toast.error(getApiError(err, 'Failed to change password'))
     } finally {
@@ -41,7 +43,7 @@ export default function SettingsProfile() {
         <Faq
           items={[
             { q: 'Can I change my email here?', a: 'Username and email are set at registration. Use password change if you need to secure the account.' },
-            { q: 'Password rules?', a: 'Use at least 6 characters. You will stay signed in after a successful change.' },
+            { q: 'Password rules?', a: 'Use at least 8 characters. You will need to sign in again after a successful change.' },
           ]}
         />
       }
@@ -88,7 +90,7 @@ export default function SettingsProfile() {
             value={pw.new_password}
             onChange={(e) => setPw((p) => ({ ...p, new_password: e.target.value }))}
             required
-            minLength={6}
+            minLength={8}
             autoComplete="new-password"
           />
         </div>
@@ -100,7 +102,7 @@ export default function SettingsProfile() {
             value={pw.confirm}
             onChange={(e) => setPw((p) => ({ ...p, confirm: e.target.value }))}
             required
-            minLength={6}
+            minLength={8}
             autoComplete="new-password"
           />
         </div>

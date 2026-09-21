@@ -25,7 +25,7 @@ Frontend dev proxies `/api` → backend via Vite.
 No auth.
 
 ```json
-{ "status": "ok", "app": "CoinCloud", "version": "2.0.0" }
+{ "status": "ok", "app": "Piramid", "version": "2.0.0", "database": "up" }
 ```
 
 ---
@@ -76,8 +76,8 @@ Auth required.
 }
 ```
 
-### `GET /api/auth/recovery-phrase`
-Auth required. **Sensitive.** Returns mnemonics, addresses, private keys, broadcast endpoints. Backfills missing WIF keys when possible.
+### `POST /api/auth/recovery-phrase`
+Auth required. **Sensitive.** Body: `{ "password": "..." }`. Re-checks the account password, then returns mnemonics, addresses, and private keys. GET is rejected (405).
 
 ---
 

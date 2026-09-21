@@ -65,14 +65,14 @@ export default function Browser() {
             href={item.url}
             target="_blank"
             rel="noreferrer"
-            className={`x-card group relative overflow-hidden bg-gradient-to-br p-5 transition hover:border-white/20 ${item.color}`}
+            className={`${ui.card} group relative overflow-hidden bg-gradient-to-br p-5 transition hover:border-accent/40 ${item.color}`}
           >
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-base font-medium">{item.name}</h3>
-                <p className="mt-1 text-sm text-white/45">{item.desc}</p>
+                <p className="mt-1 text-sm text-[var(--text-dim)]">{item.desc}</p>
               </div>
-              <ExternalLink className="h-4 w-4 text-white/30 group-hover:text-white/70" />
+              <ExternalLink className="h-4 w-4 text-[var(--text-dimmer)] group-hover:text-[var(--text)]" />
             </div>
           </a>
         ))}

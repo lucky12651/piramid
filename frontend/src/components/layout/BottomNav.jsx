@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import { Briefcase, LayoutDashboard, LineChart, Repeat, User } from 'lucide-react'
+import { ArrowUpRight, LayoutDashboard, QrCode, Receipt, User } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { ui } from '../piramid/ui'
 
 const tabs = [
   { to: '/app', end: true, label: 'Home', icon: LayoutDashboard },
-  { to: '/app/market', label: 'Market', icon: LineChart },
-  { to: '/app/swap', label: 'Trade', icon: Repeat, primary: true },
-  { to: '/app/portfolio', label: 'Book', icon: Briefcase },
+  { to: '/app/activity', label: 'Activity', icon: Receipt },
+  { to: '/app/send', label: 'Send', icon: ArrowUpRight, primary: true },
+  { to: '/app/receive', label: 'Receive', icon: QrCode },
   { to: '/app/settings/profile', label: 'Profile', icon: User },
 ]
 

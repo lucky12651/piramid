@@ -88,18 +88,7 @@ def prices():
     except Exception as e:
         if cached:
             return cached
-        return [
-            {
-                "id": "bitcoin",
-                "symbol": "BTC",
-                "name": "Bitcoin",
-                "price_usd": 0,
-                "change_24h": 0,
-                "market_cap": 0,
-                "image": None,
-                "error": str(e),
-            }
-        ]
+        return []
 
 
 @router.get("/broadcast-info")

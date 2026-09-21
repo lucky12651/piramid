@@ -253,6 +253,7 @@ body {
 }
 .tradingview-widget-container iframe {
   background: var(--chart-bg) !important;
+  color-scheme: normal;
 }
 
 /* Safe area for mobile bottom nav (iOS home indicator) */

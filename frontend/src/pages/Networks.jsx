@@ -23,8 +23,8 @@ export default function Networks() {
                 toast.success(`Switched to ${n.name}`)
               }}
               className={cn(
-                'flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-white/[0.03]',
-                active && 'bg-white/[0.04]'
+                'flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-[var(--hover)]',
+                active && 'bg-[var(--accent-dim)]'
               )}
             >
               <span
@@ -35,7 +35,7 @@ export default function Networks() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{n.name}</p>
-                <p className="text-xs text-white/40">
+                <p className="text-xs text-[var(--text-dimmer)]">
                   {n.symbol}
                   {n.chainId != null ? ` · Chain ID ${n.chainId}` : ' · UTXO'}
                 </p>

@@ -27,7 +27,8 @@ export function getApiError(err, fallback = 'Request failed') {
 
   if (err.response?.status === 401) return 'Invalid email or password'
   if (err.response?.status === 403) return 'Access denied'
-  if (err.response?.status >= 500) return 'Server error — check backend logs'
+  if (err.response?.status === 429) return 'Too many attempts. Please wait a moment.'
+  if (err.response?.status >= 500) return 'Something went wrong. Please try again.'
 
   return err.message || fallback
 }

@@ -17,10 +17,16 @@ export default function Portfolio() {
   const hideBalances = useWalletStore((s) => s.hideBalances)
   const { prices: ctxPrices } = useOutletContext() || {}
   const [balances, setBalances] = useState({})
+  const [loading, setLoading] = useState(true)
   const prices = Array.isArray(ctxPrices) && ctxPrices.length ? ctxPrices : readPriceCache()
 
   useEffect(() => {
-    walletApi.balances().then((r) => setBalances(r.data || {})).catch(() => {})
+    setLoading(true)
+    walletApi
+      .balances()
+      .then((r) => setBalances(r.data || {}))
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
   const priceMap = useMemo(() => {
@@ -78,7 +84,7 @@ export default function Portfolio() {
               <span className={ui.title}>Total value</span>
             </div>
           </div>
-          <div className={ui.amount}>{mask(formatUsd(totalUsd))}</div>
+          <div className={ui.amount}>{loading ? '…' : mask(formatUsd(totalUsd))}</div>
           <div className="portfolio-perf" style={{ marginTop: 14 }}>
             <div className={`perf-badge ${pnl24 >= 0 ? '' : 'neg'}`}>
               {pnl24 >= 0 ? '+' : ''}

@@ -21,9 +21,15 @@ export default function Receive() {
   const [coin, setCoin] = useState('BTC')
   const [addresses, setAddresses] = useState({})
   const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    walletApi.addresses().then((r) => setAddresses(r.data || {})).catch(() => toast.error('Failed to load addresses'))
+    setLoading(true)
+    walletApi
+      .addresses()
+      .then((r) => setAddresses(r.data || {}))
+      .catch(() => toast.error('Unable to load your deposit address. Please try again.'))
+      .finally(() => setLoading(false))
   }, [])
 
   const address = addresses[coin] || ''
@@ -87,7 +93,9 @@ export default function Receive() {
             {address ? (
               <QRCodeSVG value={address} size={160} level="M" includeMargin={false} />
             ) : (
-              <div style={{ width: 160, height: 160, display: 'grid', placeItems: 'center', color: '#999' }}>…</div>
+              <div style={{ width: 160, height: 160, display: 'grid', placeItems: 'center', color: '#999' }}>
+                {loading ? 'Loading' : 'No address'}
+              </div>
             )}
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>

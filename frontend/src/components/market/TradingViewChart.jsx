@@ -40,22 +40,26 @@ export default function TradingViewChart({
             locale: 'en',
             backgroundColor,
             gridColor,
+            isTransparent: false,
             hide_top_toolbar: true,
+            hide_side_toolbar: true,
             hide_legend: false,
             allow_symbol_change: false,
             calendar: false,
             hide_volume: false,
+            withdateranges: false,
             support_host: 'https://www.tradingview.com',
           }
         : {
             symbols: TV_OVERVIEW_SYMBOLS,
-            chartOnly: false,
+            chartOnly: true,
             width: '100%',
             height: '100%',
             locale: 'en',
             colorTheme: tvTheme,
             theme: tvTheme,
             autosize: true,
+            isTransparent: false,
             showVolume: false,
             showMA: false,
             hideDateRanges: false,
@@ -85,7 +89,7 @@ export default function TradingViewChart({
 
   return (
     <div
-      className="tradingview-widget-container h-full w-full overflow-hidden"
+      className="tv-embed tradingview-widget-container h-full w-full"
       style={
         fill
           ? { height: '100%', width: '100%', minHeight: 0, background: backgroundColor }

@@ -45,6 +45,7 @@ class Settings:
         ).split(",")
         if o.strip()
     ]
+    PASSWORD_MIN_LENGTH: int = int(os.environ.get("PASSWORD_MIN_LENGTH", "8"))
     ETH_RPC_URL: str = os.environ.get(
         "ETH_RPC_URL",
         "https://eth.llamarpc.com",

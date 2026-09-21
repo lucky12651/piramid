@@ -31,10 +31,10 @@ export default function CoinIcon({ symbol, className = '' }) {
   return (
     <div
       className={cn(
-        'flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[13px] font-bold text-[#0a0a0c]',
+        'coin-icon flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[13px] font-bold text-[#0a0a0c]',
         className
       )}
-      style={{ background: meta.color, boxShadow: `0 0 16px ${meta.color}73` }}
+      style={{ '--coin': meta.color, background: meta.color }}
     >
       <img
         src={`${ICON_CDN}/${s.toLowerCase()}.svg`}

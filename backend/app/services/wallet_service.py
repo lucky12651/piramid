@@ -19,7 +19,10 @@ from typing import Any
 import requests
 from eth_account import Account
 
+from app.addresses import validate_address
 from app.config import settings
+from app.crypto_box import reveal_secret, seal_secret
+from app.errors import UserWalletError, public_error
 
 try:
     from zoneinfo import ZoneInfo
@@ -66,6 +69,22 @@ BROADCAST = {
     "LTC": {"url": "https://litecoinspace.org/api/tx", "mode": "raw"},
     "DOGE": {"url": "https://api.blockcypher.com/v1/doge/main/txs/push", "mode": "blockcypher"},
 }
+
+
+def _phrase(user) -> str:
+    return reveal_secret(getattr(user, "passphrase", None))
+
+
+def _phrase_eth(user) -> str:
+    return reveal_secret(getattr(user, "passphrase_eth", None)) or _phrase(user)
+
+
+def _eth_key(user) -> str:
+    return reveal_secret(getattr(user, "private_key_eth", None))
+
+
+def _wif(user, field: str) -> str:
+    return reveal_secret(getattr(user, field, None))
 
 
 def generate_wallet_name(length: int = 10) -> str:
@@ -224,10 +243,10 @@ def ensure_wallet(user, coin: str):
         try:
             wallet = Wallet(name)
         except Exception:
-            if not user.passphrase:
+            if not _phrase(user):
                 raise ValueError("LTC wallet not initialized for this user")
             wallet = Wallet.create(
-                name, keys=user.passphrase, network="litecoin", witness_type="legacy"
+                name, keys=_phrase(user), network="litecoin", witness_type="legacy"
             )
         if (getattr(user, "wallet_name_ltc", None) or "").strip() != name:
             user.wallet_name_ltc = name
@@ -238,10 +257,10 @@ def ensure_wallet(user, coin: str):
         try:
             wallet = Wallet(name)
         except Exception:
-            if not user.passphrase:
+            if not _phrase(user):
                 raise ValueError("DOGE wallet not initialized for this user")
             wallet = Wallet.create(
-                name, keys=user.passphrase, network="dogecoin", witness_type="legacy"
+                name, keys=_phrase(user), network="dogecoin", witness_type="legacy"
             )
         if (getattr(user, "wallet_name_doge", None) or "").strip() != name:
             user.wallet_name_doge = name
@@ -429,13 +448,17 @@ def send_crypto(user, coin: str, recipient: str, amount: float, fee: float | Non
     coin = (coin or "BTC").upper()
     recipient = (recipient or "").strip()
     if coin not in SUPPORTED_COINS:
-        return {"success": False, "error": "Unsupported coin"}
-    if not recipient:
-        return {"success": False, "error": "Missing recipient address"}
+        raise UserWalletError("This asset is not supported.")
+    ok, err = validate_address(coin, recipient)
+    if not ok:
+        raise UserWalletError(err)
     if amount is None or float(amount) <= 0:
-        return {"success": False, "error": "Amount must be greater than 0"}
+        raise UserWalletError("Amount must be greater than 0.")
 
     amount = float(amount)
+    own = get_user_address(user, coin)
+    if own and own.lower() == recipient.lower():
+        raise UserWalletError("You cannot send to your own deposit address.")
 
     if coin == "ETH":
         return _send_eth(user, recipient, amount)
@@ -445,11 +468,22 @@ def send_crypto(user, coin: str, recipient: str, amount: float, fee: float | Non
     if fee is None:
         fee = DEFAULT_FEES.get(coin, 0.00001)
     fee = float(fee)
+    if fee < 0:
+        raise UserWalletError("Network fee cannot be negative.")
 
     try:
+        bal = get_balance(user, coin)
+        available = float(bal.get("balance") or 0)
+        if amount + fee > available + 1e-12:
+            raise UserWalletError(
+                f"Insufficient {coin} balance. Available {available:.8f}, need {amount + fee:.8f} including fee."
+            )
+
         wallet = ensure_wallet(user, coin)
-        amount_units = int(amount * 1e8)
-        fee_units = int(fee * 1e8)
+        amount_units = int(round(amount * 1e8))
+        fee_units = int(round(fee * 1e8))
+        if amount_units <= 0:
+            raise UserWalletError("This amount is too small for the network.")
 
         tx = wallet.transaction_create([(recipient, amount_units)], fee=fee_units)
         tx.sign()
@@ -464,30 +498,42 @@ def send_crypto(user, coin: str, recipient: str, amount: float, fee: float | Non
                 "amount": amount,
                 "fee": fee,
                 "recipient": recipient,
-                "message": f"{coin} transaction successfully broadcasted!",
-                "broadcast_via": BROADCAST[coin]["url"],
+                "message": f"{coin} sent. Wait for network confirmation.",
             }
-        return result
+        raise UserWalletError(
+            public_error(Exception(result.get("error") or "broadcast failed"), "Broadcast failed. Please try again."),
+            status_code=502,
+        )
+    except UserWalletError:
+        raise
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        raise UserWalletError(
+            public_error(e, "Unable to create this transaction. Check the amount, fee, and balance."),
+            status_code=400,
+        ) from e
 
 
 def _send_eth(user, recipient: str, amount_eth: float) -> dict[str, Any]:
-    if not user.private_key_eth:
-        return {"success": False, "error": "ETH private key not available for this user"}
+    key = _eth_key(user)
+    if not key:
+        raise UserWalletError("ETH key is not available for this account.")
     try:
         from web3 import Web3
 
         w3 = _web3()
         if not w3.is_connected():
-            return {"success": False, "error": "Unable to connect to Ethereum RPC"}
+            raise UserWalletError("Unable to reach Ethereum right now. Please try again.", status_code=502)
 
-        account = Account.from_key(user.private_key_eth)
+        account = Account.from_key(key)
         to_addr = Web3.to_checksum_address(recipient)
         value = w3.to_wei(amount_eth, "ether")
         nonce = w3.eth.get_transaction_count(account.address)
         gas_price = w3.eth.gas_price
         gas = 21000
+        fee_wei = gas * gas_price
+        bal_wei = w3.eth.get_balance(account.address)
+        if value + fee_wei > bal_wei:
+            raise UserWalletError("Insufficient ETH to cover this amount plus gas.")
         tx = {
             "nonce": nonce,
             "to": to_addr,
@@ -499,45 +545,62 @@ def _send_eth(user, recipient: str, amount_eth: float) -> dict[str, Any]:
         signed = account.sign_transaction(tx)
         raw = getattr(signed, "rawTransaction", None) or getattr(signed, "raw_transaction", None)
         tx_hash = w3.eth.send_raw_transaction(raw)
-        fee_eth = float(w3.from_wei(gas * gas_price, "ether"))
+        fee_eth = float(w3.from_wei(fee_wei, "ether"))
+        hx = tx_hash.hex() if hasattr(tx_hash, "hex") else str(tx_hash)
+        if not hx.startswith("0x"):
+            hx = "0x" + hx
         return {
             "success": True,
-            "txid": tx_hash.hex(),
+            "txid": hx,
             "coin": "ETH",
             "amount": amount_eth,
             "fee": fee_eth,
             "recipient": recipient,
-            "message": "Ethereum transaction successfully broadcasted!",
-            "broadcast_via": settings.ETH_RPC_URL,
+            "message": "ETH sent. Wait for network confirmation.",
         }
+    except UserWalletError:
+        raise
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        raise UserWalletError(
+            public_error(e, "Unable to send ETH right now. Please try again."),
+            status_code=502,
+        ) from e
 
 
 def _send_usdt(user, recipient: str, amount_usdt: float) -> dict[str, Any]:
-    if not user.private_key_eth:
-        return {"success": False, "error": "ETH key required for USDT (ERC-20)"}
+    key = _eth_key(user)
+    if not key:
+        raise UserWalletError("ETH key is required to send USDT.")
     try:
         from web3 import Web3
 
         w3 = _web3()
         if not w3.is_connected():
-            return {"success": False, "error": "Unable to connect to Ethereum RPC"}
+            raise UserWalletError("Unable to reach Ethereum right now. Please try again.", status_code=502)
 
-        account = Account.from_key(user.private_key_eth)
+        account = Account.from_key(key)
         contract = w3.eth.contract(
             address=Web3.to_checksum_address(USDT_CONTRACT), abi=ERC20_ABI
         )
-        value = int(amount_usdt * (10**USDT_DECIMALS))
+        value = int(round(amount_usdt * (10**USDT_DECIMALS)))
+        if value <= 0:
+            raise UserWalletError("This USDT amount is too small.")
+        token_bal = int(contract.functions.balanceOf(account.address).call())
+        if value > token_bal:
+            raise UserWalletError("Insufficient USDT balance.")
         nonce = w3.eth.get_transaction_count(account.address)
         gas_price = w3.eth.gas_price
+        gas = 100000
+        eth_bal = w3.eth.get_balance(account.address)
+        if eth_bal < gas * gas_price:
+            raise UserWalletError("You need a small amount of ETH to pay gas for this USDT transfer.")
         tx = contract.functions.transfer(
             Web3.to_checksum_address(recipient), value
         ).build_transaction(
             {
                 "from": account.address,
                 "nonce": nonce,
-                "gas": 100000,
+                "gas": gas,
                 "gasPrice": gas_price,
                 "chainId": w3.eth.chain_id,
             }
@@ -545,19 +608,26 @@ def _send_usdt(user, recipient: str, amount_usdt: float) -> dict[str, Any]:
         signed = account.sign_transaction(tx)
         raw = getattr(signed, "rawTransaction", None) or getattr(signed, "raw_transaction", None)
         tx_hash = w3.eth.send_raw_transaction(raw)
-        fee_eth = float(w3.from_wei(100000 * gas_price, "ether"))
+        fee_eth = float(w3.from_wei(gas * gas_price, "ether"))
+        hx = tx_hash.hex() if hasattr(tx_hash, "hex") else str(tx_hash)
+        if not hx.startswith("0x"):
+            hx = "0x" + hx
         return {
             "success": True,
-            "txid": tx_hash.hex(),
+            "txid": hx,
             "coin": "USDT",
             "amount": amount_usdt,
             "fee": fee_eth,
             "recipient": recipient,
-            "message": "USDT (ERC-20) transfer broadcasted on Ethereum!",
-            "broadcast_via": settings.ETH_RPC_URL,
+            "message": "USDT sent on Ethereum. Wait for confirmation.",
         }
+    except UserWalletError:
+        raise
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        raise UserWalletError(
+            public_error(e, "Unable to send USDT right now. Please try again."),
+            status_code=502,
+        ) from e
 
 
 def get_transactions(user, coin: str) -> list[dict[str, Any]]:
@@ -837,8 +907,7 @@ def sync_private_keys(user) -> bool:
         "DOGE": ("private_master_key_wif_doge", "dogecoin"),
     }
     for coin, (field, network) in coin_field.items():
-        current = (getattr(user, field, None) or "").strip()
-        # Re-extract if empty or looks like extended key only (prefer classic WIF)
+        current = _wif(user, field)
         needs = not current or current.startswith(("xprv", "yprv", "zprv", "tprv", "Ltpv", "dgub", "dgpv"))
         if not needs:
             continue
@@ -847,9 +916,8 @@ def sync_private_keys(user) -> bool:
             key = wallet.get_key()
             wif = _extract_wif_from_key_obj(key, network)
             if wif:
-                setattr(user, field, wif)
+                setattr(user, field, seal_secret(wif))
                 changed = True
-            # Also ensure address is filled
             addr_field = {
                 "BTC": "wallet_address_btc",
                 "LTC": "wallet_address_ltc",
@@ -858,28 +926,22 @@ def sync_private_keys(user) -> bool:
             if not (getattr(user, addr_field, None) or "").strip():
                 setattr(user, addr_field, key.address)
                 changed = True
-        except Exception as e:
-            print(f"sync_private_keys {coin}: {e}")
+        except Exception:
+            pass
 
-    # ETH private key from passphrase if missing
-    if not (user.private_key_eth or "").strip():
+    if not _eth_key(user):
         try:
-            phrase = (getattr(user, "passphrase_eth", None) or user.passphrase or "").strip()
+            phrase = _phrase_eth(user)
             if phrase:
                 eth = create_eth_wallet(phrase)
-                user.private_key_eth = eth["private_key_eth"]
+                user.private_key_eth = seal_secret(eth["private_key_eth"])
                 if not (user.wallet_address_eth or "").strip():
                     user.wallet_address_eth = eth["wallet_address_eth"]
-                if hasattr(user, "passphrase_eth") and not (user.passphrase_eth or "").strip():
-                    user.passphrase_eth = phrase
+                if hasattr(user, "passphrase_eth") and not _phrase_eth(user):
+                    user.passphrase_eth = seal_secret(phrase)
                 changed = True
-            else:
-                eth = create_eth_wallet()
-                user.private_key_eth = eth["private_key_eth"]
-                user.wallet_address_eth = eth["wallet_address_eth"]
-                changed = True
-        except Exception as e:
-            print(f"sync_private_keys ETH: {e}")
+        except Exception:
+            pass
 
     return changed
 
@@ -892,23 +954,23 @@ def ensure_addresses_backfill(user, db_session=None) -> bool:
             w = ensure_wallet(user, "BTC")
             user.wallet_address_btc = w.get_key().address
             changed = True
-        if not (user.wallet_address_ltc or "").strip() and (user.passphrase or "").strip():
+        if not (user.wallet_address_ltc or "").strip() and _phrase(user):
             w = ensure_wallet(user, "LTC")
             user.wallet_address_ltc = w.get_key().address
             changed = True
-        if not (getattr(user, "wallet_address_doge", None) or "").strip() and (user.passphrase or "").strip():
+        if not (getattr(user, "wallet_address_doge", None) or "").strip() and _phrase(user):
             w = ensure_wallet(user, "DOGE")
             user.wallet_address_doge = w.get_key().address
             changed = True
         if not (user.wallet_address_eth or "").strip():
-            eth = create_eth_wallet(user.passphrase)
+            eth = create_eth_wallet(_phrase(user) or None)
             user.wallet_address_eth = eth["wallet_address_eth"]
-            user.private_key_eth = eth["private_key_eth"]
+            user.private_key_eth = seal_secret(eth["private_key_eth"])
             if hasattr(user, "passphrase_eth"):
-                user.passphrase_eth = eth.get("passphrase_eth") or user.passphrase
+                user.passphrase_eth = seal_secret(eth.get("passphrase_eth") or _phrase(user))
             changed = True
-        elif hasattr(user, "passphrase_eth") and not (user.passphrase_eth or "").strip() and user.passphrase:
-            user.passphrase_eth = user.passphrase
+        elif hasattr(user, "passphrase_eth") and not _phrase_eth(user) and _phrase(user):
+            user.passphrase_eth = seal_secret(_phrase(user))
             changed = True
 
         if sync_private_keys(user):
@@ -926,24 +988,23 @@ def ensure_addresses_backfill(user, db_session=None) -> bool:
 
 def recovery_bundle(user) -> dict[str, Any]:
     """All recovery material for the authenticated owner."""
-    # Prefer live keys (already synced by ensure_addresses_backfill)
-    btc_wif = user.private_master_key_wif_btc
-    ltc_wif = user.private_master_key_wif_ltc
-    doge_wif = getattr(user, "private_master_key_wif_doge", None)
-    eth_key = user.private_key_eth
+    btc_wif = _wif(user, "private_master_key_wif_btc")
+    ltc_wif = _wif(user, "private_master_key_wif_ltc")
+    doge_wif = _wif(user, "private_master_key_wif_doge")
+    eth_key = _eth_key(user)
 
     return {
         "warning": "Never share these secrets. Anyone with them can control your funds.",
         "mnemonic_utxo": {
             "label": "BTC / LTC / DOGE recovery phrase",
             "coins": ["BTC", "LTC", "DOGE"],
-            "passphrase": user.passphrase or "",
+            "passphrase": _phrase(user),
             "note": "BIP39 mnemonic used by bitcoinlib for UTXO chains. Store offline.",
         },
         "mnemonic_evm": {
             "label": "ETH / USDT recovery phrase",
             "coins": ["ETH", "USDT"],
-            "passphrase": getattr(user, "passphrase_eth", None) or user.passphrase or "",
+            "passphrase": _phrase_eth(user),
             "note": "BIP39 mnemonic (same as UTXO for new accounts). USDT is ERC-20 on this ETH address.",
         },
         "addresses": {
@@ -996,12 +1057,11 @@ def get_eth_gas() -> dict[str, Any]:
                 "fast_gwei": round(gwei * 1.2, 2),
                 "transfer_eth": (wei * 21000) / 1e18,
                 "transfer_gas_limit": 21000,
-                "source": url,
             }
         except Exception as e:
             last_err = str(e)
             continue
-    return {"ok": False, "error": last_err, "gwei": 0, "slow_gwei": 0, "fast_gwei": 0}
+    return {"ok": False, "error": "Unable to fetch Ethereum gas right now.", "gwei": 0, "slow_gwei": 0, "fast_gwei": 0}
 
 
 def get_nfts(address: str) -> list[dict[str, Any]]:

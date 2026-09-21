@@ -51,7 +51,7 @@ export default function Swap() {
     <BinancePage
       crumb="Trade"
       title="Trade"
-      sub="Convert between assets with a live USD quote."
+      sub="Live USD quote only. On-chain DEX swaps are not enabled."
       tabs={<TransferTabs />}
       aside={
         <Faq

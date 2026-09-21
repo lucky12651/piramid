@@ -6,6 +6,7 @@ import { formatUsd } from '../lib/utils'
 import CoinIcon from '../components/piramid/CoinIcon'
 import Change from '../components/piramid/Change'
 import { ui } from '../components/piramid/ui'
+import { cn } from '../lib/utils'
 import MarketOverview from '../components/market/MarketOverview'
 import { useWalletStore } from '../store/useWalletStore'
 import BinancePage from '../components/layout/BinancePage'
@@ -40,8 +41,8 @@ export default function Market() {
       sub="Live prices. Star a coin to pin it on the watchlist."
       wide
     >
-      <div className={ui.panel} style={{ marginBottom: 16, padding: 8 }}>
-        <MarketOverview height={340} />
+      <div className={cn(ui.card, 'mb-6 overflow-hidden p-0')} style={{ background: 'var(--chart-bg)' }}>
+        <MarketOverview height={560} />
       </div>
       <div className={ui.tableWrap}>
         <table className="w-full min-w-[720px] border-collapse">
@@ -49,11 +50,18 @@ export default function Market() {
             <tr>
               <th></th>
               <th>Name</th>
-              <th>Price</th>
-              <th>24h</th>
+              <th className="num">Price</th>
+              <th className="num">24h</th>
             </tr>
           </thead>
           <tbody>
+            {prices.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center text-[var(--text-dimmer)]">
+                  Loading live prices…
+                </td>
+              </tr>
+            )}
             {prices.map((p) => (
               <tr key={p.symbol}>
                 <td>
@@ -72,8 +80,8 @@ export default function Market() {
                     <span style={{ color: 'var(--text-dimmer)', fontWeight: 600 }}>{p.symbol}</span>
                   </span>
                 </td>
-                <td>{formatUsd(p.price_usd)}</td>
-                <td>
+                <td className="num">{formatUsd(p.price_usd)}</td>
+                <td className="num">
                   <Change value={p.change_24h} />
                 </td>
               </tr>
