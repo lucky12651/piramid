@@ -1,24 +1,30 @@
+import { createContext, useContext } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { ui } from '../piramid/ui'
 
+export const TransferModalContext = createContext(false)
+
 export const TRANSFER_TABS = [
   { to: '/app/send', label: 'Withdraw' },
   { to: '/app/receive', label: 'Deposit' },
-  { to: '/app/swap', label: 'Trade' },
 ]
 
 export function TransferTabs() {
+  const modal = useContext(TransferModalContext)
+  const TabLink = modal ? Link : NavLink
   return (
     <div className="mb-6 flex gap-1 border-b border-[var(--line)]">
       {TRANSFER_TABS.map((t) => (
-        <NavLink
+        <TabLink
           key={t.to}
           to={t.to}
-          className={({ isActive }) => cn(ui.tab, isActive && ui.tabOn)}
+          replace={modal}
+          aria-current={modal && ((modal === 'deposit') === (t.to === '/app/receive')) ? 'page' : undefined}
+          className={modal ? cn(ui.tab, ((modal === 'deposit') === (t.to === '/app/receive')) && ui.tabOn) : ({ isActive }) => cn(ui.tab, isActive && ui.tabOn)}
         >
           {t.label}
-        </NavLink>
+        </TabLink>
       ))}
     </div>
   )
@@ -33,6 +39,13 @@ export default function BinancePage({
   children,
   wide = false,
 }) {
+  const modal = useContext(TransferModalContext)
+  if (modal) return <div className="transfer-content">
+    {sub && <p className="mb-5 text-sm text-[var(--text-dim)]">{sub}</p>}
+    {tabs}
+    {children}
+    {aside && <aside className="mt-4 flex flex-col gap-4">{aside}</aside>}
+  </div>
   return (
     <div className={ui.page}>
       <header className="mb-6">

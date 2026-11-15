@@ -1,19 +1,17 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { useRef } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/useAuthStore'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Portfolio from './pages/Portfolio'
-import Send from './pages/Send'
-import Receive from './pages/Receive'
 import Transactions from './pages/Transactions'
 import SettingsProfile from './pages/SettingsProfile'
 import SettingsSecurity from './pages/SettingsSecurity'
 import Admin from './pages/Admin'
 import Connect from './pages/Connect'
 import Networks from './pages/Networks'
-import Swap from './pages/Swap'
 import Browser from './pages/Browser'
 import Market from './pages/Market'
 import Nfts from './pages/Nfts'
@@ -31,8 +29,13 @@ function Protected({ children, adminOnly = false }) {
 }
 
 export default function App() {
+  const location = useLocation()
+  const background = useRef(null)
+  const transfer = location.pathname === '/app/receive' ? 'deposit' : location.pathname === '/app/send' ? 'withdraw' : null
+  if (!transfer) background.current = location
+  const baseLocation = transfer ? background.current || { pathname: '/app' } : location
   return (
-    <Routes>
+    <Routes location={baseLocation}>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -41,19 +44,16 @@ export default function App() {
         path="/app"
         element={
           <Protected>
-            <AppLayout />
+            <AppLayout transfer={transfer} transferBackground={background.current} />
           </Protected>
         }
       >
         <Route index element={<Dashboard />} />
         <Route path="portfolio" element={<Portfolio />} />
-        <Route path="send" element={<Send />} />
-        <Route path="receive" element={<Receive />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="activity" element={<Transactions />} />
         <Route path="connect" element={<Connect />} />
         <Route path="networks" element={<Networks />} />
-        <Route path="swap" element={<Swap />} />
         <Route path="market" element={<Market />} />
         <Route path="nfts" element={<Nfts />} />
         <Route path="contacts" element={<Contacts />} />

@@ -1,4 +1,14 @@
 /* Layout and surfaces adapted from the user's dashboard.html reference. */
+.transfer-modal { width: min(620px, calc(100vw - 32px)); max-width: calc(100vw - 32px); max-height: calc(100dvh - 40px); padding: 0; border: 1px solid var(--line); border-radius: 22px; background: var(--card); color: var(--text); box-shadow: 0 30px 100px #0008; overflow-y: auto; }
+.transfer-modal::backdrop { background: #0009; backdrop-filter: blur(6px); }
+.transfer-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; position: sticky; top: 0; z-index: 2; background: var(--card); border-bottom: 1px solid var(--line); }
+.transfer-modal-header h2 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+.transfer-modal-header button { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--muted-bg); }
+.transfer-content { padding: 24px; }
+.transfer-content > .workspace-card { box-shadow: none; background: var(--bg); }
+.transfer-content > aside { font-size: 13px; }
+.transfer-content .workspace-card { padding: 18px; }
+@media(max-width:639px) { .transfer-content { padding: 16px; } .transfer-modal-header { padding: 16px; } .transfer-content .workspace-card { padding: 14px; } }
 .piramid-shell {
   --card: #151519;
   --line: #232329;

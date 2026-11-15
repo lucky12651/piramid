@@ -23,6 +23,7 @@ import BottomNav from './BottomNav'
 import LockScreen from './LockScreen'
 import CoinIcon from '../piramid/CoinIcon'
 import Change from '../piramid/Change'
+import TransferModal from './TransferModal'
 import { ui } from '../piramid/ui'
 
 const nav = [
@@ -51,15 +52,6 @@ const nav = [
     ),
   },
   {
-    to: '/app/swap',
-    label: 'Trade',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M7 7h10M17 7l-3-3M17 7l-3 3M17 17H7M7 17l3-3M7 17l3 3" />
-      </svg>
-    ),
-  },
-  {
     to: '/app/portfolio',
     label: 'Portfolio',
     icon: (
@@ -75,7 +67,6 @@ const nav = [
 const PAGES = [
   { to: '/app', label: 'Dashboard', hint: 'Live trading home' },
   { to: '/app/market', label: 'Market', hint: 'Live prices' },
-  { to: '/app/swap', label: 'Trade', hint: 'Convert assets' },
   { to: '/app/portfolio', label: 'Portfolio', hint: 'Holdings & allocation' },
   { to: '/app/send', label: 'Withdraw', hint: 'Send crypto' },
   { to: '/app/receive', label: 'Deposit', hint: 'Address & QR' },
@@ -88,7 +79,7 @@ const PAGES = [
   { to: '/app/settings/security', label: 'Security', hint: 'Backup & keys' },
 ]
 
-export default function AppLayout() {
+export default function AppLayout({ transfer, transferBackground }) {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const refreshMe = useAuthStore((s) => s.refreshMe)
@@ -543,6 +534,7 @@ export default function AppLayout() {
         </main>
 
         <BottomNav />
+        {transfer && <TransferModal kind={transfer} background={transferBackground} />}
       </div>
     </div>
   )
