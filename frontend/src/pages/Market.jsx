@@ -90,7 +90,6 @@ export default function Market() {
         </table>
       </div>
       <div style={{ marginTop: 12 }}>
-        <Link to="/app/calendar" className={ui.link}>Economic calendar →</Link>
       </div>
     </BinancePage>
   )

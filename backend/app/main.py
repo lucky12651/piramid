@@ -50,7 +50,7 @@ def ensure_env_admin():
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     ensure_postgres_columns()
-    print(f"Database: PostgreSQL → {settings.DATABASE_URL.split('@')[-1]}")
+    print(f"Database: PostgreSQL -> {settings.DATABASE_URL.split('@')[-1]}")
     ensure_env_admin()
     yield
 

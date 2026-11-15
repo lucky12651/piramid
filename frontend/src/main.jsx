@@ -5,6 +5,7 @@ import App from './App'
 import ThemeToaster from './components/ThemeToaster'
 import './index.css'
 import './piramid.css'
+import './dashboard-reference.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

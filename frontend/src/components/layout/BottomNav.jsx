@@ -13,7 +13,7 @@ const tabs = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-[var(--line)] bg-[var(--sidebar-bg)] px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 lg:hidden">
+    <nav aria-label="Quick navigation" className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-[var(--line)] bg-[var(--sidebar-bg)] px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 lg:hidden">
       {tabs.map(({ to, end, label, icon: Icon, primary }) => (
         <NavLink
           key={to}
@@ -21,8 +21,8 @@ export default function BottomNav() {
           end={end}
           className={({ isActive }) =>
             cn(
-              'flex flex-col items-center gap-1 text-[10px] font-semibold text-[var(--text-dimmer)]',
-              isActive && 'text-[var(--text)]',
+              'min-h-[48px] justify-center rounded-xl flex flex-col items-center gap-1 text-[10px] font-semibold text-[var(--text-dimmer)]',
+              isActive && 'bg-[var(--accent-dim)] text-[var(--text)]',
               primary && '-mt-3.5'
             )
           }

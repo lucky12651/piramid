@@ -1,13 +1,13 @@
 /* Piramid tokens + motion. All layout/chrome lives in Tailwind JSX. */
 :root, .piramid-shell {
-  --bg: #0a0a0c; --sidebar-bg: #0e0e11; --card: rgba(21, 21, 25, 0.72); --line: #232329;
-  --text: #f5f5f7; --text-dim: #9a9aa3; --text-dimmer: #5c5c66; --accent: #d7f24c;
+  --bg: #0a0a0c; --sidebar-bg: #0e0e11; --card: #15161b; --line: #292b33;
+  --text: #f5f5f7; --text-dim: #9a9aa3; --text-dimmer: #92949e; --accent: #d7f24c;
   --accent-dim: rgba(215, 242, 76, 0.14); --green: #3ddc84; --green-bg: rgba(61, 220, 132, 0.13);
   --red: #f36969; --red-bg: rgba(243, 105, 105, 0.13); --hover: #17171c; --muted-bg: #1e1e24; --ink: #0a0a0c; --chart-bg: #111114;
 }
 .theme-light, .piramid-shell.theme-light {
   --bg: #e8ece3; --sidebar-bg: #f7f8f4; --card: #ffffff; --line: #d4dbc8;
-  --text: #1a1f16; --text-dim: #5a6154; --text-dimmer: #7e8676; --hover: #eef1ea;
+  --text: #1a1f16; --text-dim: #5a6154; --text-dimmer: #656d60; --hover: #eef1ea;
   --muted-bg: #eef1ea; --ink: #12160f; --chart-bg: #fff; --accent-dim: rgba(180, 200, 40, 0.2);
   --green: #12985a; --green-bg: rgba(18, 152, 90, 0.12); --red: #d64545; --red-bg: rgba(214, 69, 69, 0.12);
   color-scheme: light;
@@ -85,10 +85,6 @@
 .tv-embed .tradingview-widget-copyright {
   display: none !important;
 }
-.tv-calendar {
-  height: 100%;
-  min-height: 640px;
-}
 .piramid-shell button:focus-visible,
 .piramid-shell a:focus-visible,
 .piramid-shell input:focus-visible,
@@ -156,3 +152,90 @@ html.theme-light body { background: #e8ece3; color: #1a1f16; }
 }
 .piramid-shell .wl-change.pos { color: var(--green); }
 .piramid-shell .wl-change.neg { color: var(--red); }
+
+/* Workspace: quiet surfaces, clear hierarchy, consistent interaction. */
+.piramid-shell { background: var(--bg); }
+.workspace-main { background: none; }
+.workspace-card { min-width: 0; box-shadow: 0 4px 20px #0000000d; backdrop-filter: none; }
+.workspace-card::before { display: none; }
+.primary-action { background: var(--accent); border-radius: 12px; box-shadow: 0 2px 4px #00000014; transition: background .18s, transform .18s; }
+.primary-action:hover { background: #e4fc70; transform: translateY(-1px); }
+.workspace-nav-link { min-height: 46px; }
+.workspace-nav-link[aria-current="page"] { background: var(--accent-dim); color: var(--text); }
+.workspace-nav-link[aria-current="page"]::after { box-shadow: none; }
+.workspace-topbar { background: var(--sidebar-bg); min-height: 82px; }
+.workspace-search { border-radius: 12px; }
+.workspace-card svg:not([width]):not([class*="w-"]) { width: 18px; height: 18px; flex-shrink: 0; }
+.dashboard-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.dashboard-eyebrow { color: var(--text-dimmer); font-size: 11px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px; }
+.dashboard-grid { display: grid; gap: 20px; grid-template-columns: minmax(0,1fr); }
+.dashboard-grid > * { min-width: 0; }
+.dashboard-balance { border-top: 2px solid var(--accent); }
+.dashboard-market-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.dashboard-market-cards > button { padding: 18px; }
+.dashboard-market-cards > button > div:last-child { flex-wrap: wrap; }
+.dashboard-market-cards svg { max-width: 100%; }
+.dashboard-market-cards > button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-dim); }
+.dashboard-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
+.dashboard-stats > div:last-child { grid-column: 1 / -1; }
+.balance-status { border: 1px solid var(--line); background: var(--muted-bg); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; color: var(--text-dim); font-size: 13px; }
+.mobile-drawer { margin: 0; height: 100dvh; max-height: 100dvh; width: min(340px,90vw); max-width: 90vw; padding: 24px 18px; border: 0; border-right: 1px solid var(--line); background: var(--sidebar-bg); color: var(--text); }
+.mobile-drawer::backdrop { background: #0009; backdrop-filter: blur(4px); }
+.skip-link { position: fixed; top: -100px; left: 20px; z-index: 100; background: var(--accent); color: #12160f; padding: 12px 18px; border-radius: 10px; }
+.skip-link:focus { top: 12px; }
+.piramid-shell button, .piramid-shell a, .piramid-shell input { -webkit-tap-highlight-color: transparent; }
+.piramid-shell button:disabled { cursor: not-allowed; }
+.piramid-shell input, .piramid-shell select { min-height: 44px; }
+.piramid-shell h1 { line-height: 1.2; }
+.piramid-shell table { font-variant-numeric: tabular-nums; }
+.piramid-shell table th { background: var(--sidebar-bg); }
+@media(min-width:1280px) {
+  .dashboard-grid { grid-template-columns: minmax(290px,1fr) minmax(0,1fr) minmax(240px,.85fr); grid-template-areas: "balance crypto crypto" "chart chart portfolio"; align-items: start; }
+  .dashboard-balance { grid-area: balance; }
+  .dashboard-market { grid-area: crypto; }
+  .dashboard-chart { grid-area: chart; }
+  .dashboard-portfolio { grid-area: portfolio; }
+}
+@media(max-width:639px) {
+  .workspace-topbar { gap: 10px; padding: 12px 16px; }
+  .workspace-topbar > .header-deposit { display: none; }
+  .header-profile-name { display: none; }
+  .header-search { order: 10; width: 100%; }
+  .workspace-search { width: 100%; }
+  .header-search [class*="absolute"] { max-width: calc(100vw - 32px); }
+  .dashboard-heading { align-items: flex-start; margin-bottom: 22px; }
+  .dashboard-date { display: none; }
+  .dashboard-market-cards { grid-template-columns: minmax(0,1fr); }
+  .dashboard-market-cards > button > div:last-child { flex-wrap: nowrap; }
+  .dashboard-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .piramid-shell input, .piramid-shell select { font-size: 16px; }
+  .workspace-card { padding: 18px; }
+  .dashboard-chart { padding: 0; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+.auth-layout { display: grid; grid-template-columns: 1fr 1fr; min-height: 100dvh; background: #0c0d10; color: #f5f5f7; }
+.auth-story { display: flex; flex-direction: column; justify-content: space-between; gap: 48px; padding: clamp(32px,5vw,80px); border-right: 1px solid #292b33; background: radial-gradient(ellipse at 0 0,#d7f24c0e,transparent 65%),#14161a; }
+.auth-story-content { max-width: 480px; }
+.auth-kicker { color: #d7f24c; font-size: 11px; text-transform: uppercase; letter-spacing: .16em; font-weight: 600; }
+.auth-story h2 { font-size: clamp(38px,4.3vw,64px); line-height: 1.08; letter-spacing: -.045em; font-weight: 600; margin: 22px 0; }
+.auth-story-content > p { font-size: 15px; color: #a5a7b0; line-height: 1.8; margin-bottom: 40px; max-width: 370px; }
+.auth-feature { display: flex; align-items: center; gap: 18px; margin-top: 24px; }
+.auth-feature > svg { box-sizing: content-box; padding: 12px; border: 1px solid #33363d; border-radius: 14px; color: #d7f24c; flex-shrink: 0; }
+.auth-feature strong { font-size: 14px; font-weight: 500; display: block; }
+.auth-feature span { display: block; font-size: 12px; color: #a5a7b0; margin-top: 5px; }
+.auth-form-area { display: flex; align-items: center; justify-content: center; padding: 48px; }
+.auth-form-area .x-label { color: #b7b9c2; text-transform: none; letter-spacing: 0; font-size: 13px; }
+.auth-form-area .x-input { min-height: 50px; border-color: #30323c; background: #17181e; }
+.auth-form-area .x-input::placeholder { color: #8d909c; }
+.auth-form-area .x-btn-primary { background: #d7f24c; box-shadow: none; border-radius: 12px; min-height: 50px; }
+.auth-form-area :is(a,button,input):focus-visible { outline: 2px solid #d7f24c; outline-offset: 4px; }
+@media(max-width:900px) { .auth-layout { grid-template-columns: 1fr; } .auth-story { display: none; } .auth-form-area { padding: 40px 24px; } }
+@media(max-width:639px) { .auth-form-area .x-input { font-size: 16px; } }
+
+.dashboard-chart-embed { height: 440px; }
+.dashboard-chart:fullscreen { background: var(--card); }
+.dashboard-chart:fullscreen .dashboard-chart-embed { height: calc(100vh - 70px); }
+@media(max-width:639px) { .dashboard-chart-embed { height: 360px; } }

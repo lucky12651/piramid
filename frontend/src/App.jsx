@@ -16,7 +16,6 @@ import Networks from './pages/Networks'
 import Swap from './pages/Swap'
 import Browser from './pages/Browser'
 import Market from './pages/Market'
-import Calendar from './pages/Calendar'
 import Nfts from './pages/Nfts'
 import Contacts from './pages/Contacts'
 import Alerts from './pages/Alerts'
@@ -59,7 +58,6 @@ export default function App() {
         <Route path="nfts" element={<Nfts />} />
         <Route path="contacts" element={<Contacts />} />
         <Route path="alerts" element={<Alerts />} />
-        <Route path="calendar" element={<Calendar />} />
         <Route path="browser" element={<Browser />} />
         <Route path="settings" element={<Navigate to="/app/settings/profile" replace />} />
         <Route path="settings/profile" element={<SettingsProfile />} />

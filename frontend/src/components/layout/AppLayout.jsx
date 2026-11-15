@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
+  Settings,
+  Menu,
+  X,
   Bell,
   Lock,
   LogOut,
@@ -66,16 +69,7 @@ const nav = [
       </svg>
     ),
   },
-  {
-    to: '/app/calendar',
-    label: 'Economic Calendar',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M8 3v4M16 3v4M3 10h18" strokeLinecap="round" />
-      </svg>
-    ),
-  },
+
 ]
 
 const PAGES = [
@@ -83,7 +77,6 @@ const PAGES = [
   { to: '/app/market', label: 'Market', hint: 'Live prices' },
   { to: '/app/swap', label: 'Trade', hint: 'Convert assets' },
   { to: '/app/portfolio', label: 'Portfolio', hint: 'Holdings & allocation' },
-  { to: '/app/calendar', label: 'Economic Calendar', hint: 'Macro events' },
   { to: '/app/send', label: 'Withdraw', hint: 'Send crypto' },
   { to: '/app/receive', label: 'Deposit', hint: 'Address & QR' },
   { to: '/app/activity', label: 'Activity', hint: 'Transaction history' },
@@ -116,6 +109,8 @@ export default function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const drawerRef = useRef(null)
+  const drawerTriggerRef = useRef(null)
   const [prices, setPrices] = useState(() => readPriceCache())
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -149,6 +144,7 @@ export default function AppLayout() {
     setMenuOpen(false)
     setNotifOpen(false)
     setQuery('')
+    drawerRef.current?.close()
   }, [location.pathname])
 
   useEffect(() => {
@@ -239,6 +235,14 @@ export default function AppLayout() {
     return { pages, toks, people }
   }, [query, prices, contacts])
 
+  useEffect(() => {
+    const close = (event) => {
+      if (event.key === 'Escape') { setMenuOpen(false); setNotifOpen(false); setQuery('') }
+    }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [])
+
   const unread = notifications.filter((n) => !n.read).length
   const handleLogout = () => {
     logout()
@@ -254,6 +258,14 @@ export default function AppLayout() {
 
   return (
     <div className={cn(ui.shell, theme === 'light' && 'theme-light')}>
+      <a href="#main-content" className="skip-link">Skip to content</a>
+      <dialog ref={drawerRef} className="mobile-drawer" aria-label="Main navigation" onClick={(e) => { if (e.target === drawerRef.current) { const r = e.target.getBoundingClientRect(); if (e.clientX > r.right) e.target.close() } }} onClose={() => drawerTriggerRef.current?.focus()}>
+        <div className="mb-8 flex items-center justify-between"><Link to="/app" className="flex items-center gap-3 text-xl font-bold"><BrandLogo size={32} /> Piramid</Link><button type="button" className={ui.iconBtn} aria-label="Close navigation" onClick={() => drawerRef.current.close()}><X size={20} /></button></div>
+        <div className="dashboard-eyebrow px-3">Workspace</div>
+        <nav className={ui.nav} aria-label="Mobile navigation">
+          {PAGES.map(({ to, label }) => <NavLink key={to} to={to} end={to === '/app'} className={({ isActive }) => cn(ui.navItem, isActive && ui.navOn)} onClick={() => drawerRef.current.close()}>{label}</NavLink>)}
+        </nav>
+      </dialog>
       <aside className={ui.sidebar}>
         <Link to="/app" className={ui.logo}>
           <BrandLogo size={34} />
@@ -263,7 +275,7 @@ export default function AppLayout() {
           </div>
         </Link>
 
-        <nav className={ui.nav}>
+        <nav className={ui.nav} aria-label="Main navigation">
           {nav.map(({ to, end, label, icon }) => (
             <NavLink
               key={to}
@@ -305,7 +317,7 @@ export default function AppLayout() {
         <div className="flex-1" />
 
         {premiumOpen && (
-          <div className="p-glass relative mt-3.5 rounded-[14px] border border-[#d7f24c]/30 bg-[var(--card)] p-3.5 backdrop-blur-[18px] light:bg-white/90">
+          <div className="reference-security p-glass relative mt-3.5 rounded-[14px] border border-[#d7f24c]/30 bg-[var(--card)] p-3.5 backdrop-blur-[18px] light:bg-white/90">
             <button
               type="button"
               className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full text-[var(--text-dimmer)]"
@@ -335,6 +347,7 @@ export default function AppLayout() {
 
       <div className={ui.main}>
         <header className={ui.topbar}>
+          <button ref={drawerTriggerRef} type="button" className={cn(ui.iconBtn, 'lg:hidden')} aria-label="Open navigation" aria-haspopup="dialog" onClick={() => drawerRef.current.showModal()}><Menu size={19} /></button>
           {menuOpen && (
             <button
               type="button"
@@ -343,19 +356,17 @@ export default function AppLayout() {
               style={{ position: 'fixed', inset: 0, zIndex: 20, background: 'transparent', border: 0 }}
             />
           )}
-          <div className="relative z-[21] flex cursor-pointer items-center gap-2.5" onClick={() => setMenuOpen((v) => !v)}>
-            <img
-              className={ui.avatar}
-              alt={initials}
-              src={`https://api.dicebear.com/8.x/adventurer/svg?seed=${encodeURIComponent(user?.username || 'piramid')}&backgroundColor=b6e3f4,c0aede,d1d4f9`}
-            />
-            <div>
-              <div className="text-[13.5px] font-bold leading-tight">{user?.username || 'Wallet'}</div>
-              <div className="text-[11.5px] text-[var(--text-dimmer)]">@{user?.username || 'user'}</div>
+          <div className="relative z-[21]">
+          <button type="button" className="flex items-center gap-2.5 text-left" aria-label="Account menu" aria-expanded={menuOpen} onClick={() => setMenuOpen((v) => !v)}>
+            <span className="reference-avatar">{initials}</span>
+            <div className="header-profile-name min-w-0 max-w-[140px]">
+              <div className="truncate text-[13px] font-semibold">{user?.username || 'Wallet'}</div>
+              <div className="text-[11px] text-[var(--text-dimmer)]">@{user?.username || 'user'}</div>
             </div>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="ml-0.5 h-3.5 w-3.5 text-[var(--text-dimmer)]">
               <path d="M6 9l6 6 6-6" />
             </svg>
+          </button>
             {menuOpen && (
               <div className="absolute left-0 top-[calc(100%+10px)] z-[70] min-w-[196px] rounded-xl border border-[var(--line)] bg-[var(--sidebar-bg)] p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] light:bg-white" onClick={(e) => e.stopPropagation()}>
                 <Link to="/app/settings/profile" className={ui.menuItem} onClick={() => setMenuOpen(false)}>
@@ -389,7 +400,7 @@ export default function AppLayout() {
             )}
           </div>
 
-          <Link to="/app/receive" className={ui.deposit}>
+          <Link to="/app/receive" className={cn(ui.deposit, "header-deposit")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <rect x="2" y="6" width="20" height="14" rx="2" />
               <path d="M2 10h20M7 15h3" />
@@ -404,6 +415,7 @@ export default function AppLayout() {
               type="button"
               className={ui.iconBtn}
               aria-label="Notifications"
+              aria-expanded={notifOpen}
               onClick={() => {
                 setNotifOpen((v) => !v)
                 markNotificationsRead()
@@ -438,13 +450,14 @@ export default function AppLayout() {
             )}
           </div>
 
-          <div className="relative">
+          <div className="header-search relative">
             <div className={ui.search}>
               <Search size={15} />
               <input
                 type="text"
                 className="w-full bg-transparent text-[13px] text-[var(--text)] outline-none placeholder:text-[var(--text-dimmer)]"
                 placeholder="Search"
+                aria-label="Search assets or pages"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -485,7 +498,8 @@ export default function AppLayout() {
             )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-[#d7f24c] p-1 shadow-[0_2px_10px_rgba(215,242,76,0.28)]" role="group" aria-label="Theme">
+          <Link to="/app/settings/profile" className={cn(ui.iconBtn, "reference-settings")} aria-label="Settings"><Settings size={18} /></Link>
+          <div className="reference-theme flex shrink-0 items-center gap-0.5 rounded-full bg-[#d7f24c] p-1 shadow-[0_2px_10px_rgba(215,242,76,0.28)]" role="group" aria-label="Theme">
             <button
               type="button"
               className={cn(
@@ -494,6 +508,7 @@ export default function AppLayout() {
               )}
               onClick={() => setTheme('light')}
               aria-label="Light mode"
+              aria-pressed={theme === 'light'}
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true">
                 <circle cx="12" cy="12" r="4" fill="currentColor" />
@@ -514,6 +529,7 @@ export default function AppLayout() {
               )}
               onClick={() => setTheme('dark')}
               aria-label="Dark mode"
+              aria-pressed={theme === 'dark'}
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
                 <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" />
@@ -522,9 +538,9 @@ export default function AppLayout() {
           </div>
         </header>
 
-        <div className="min-w-0 flex-1">
+        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1">
           <Outlet context={{ searchQuery: query, prices }} />
-        </div>
+        </main>
 
         <BottomNav />
       </div>

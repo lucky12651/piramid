@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
-import { EyeOff } from 'lucide-react'
+import { Eye, EyeOff, RefreshCw } from 'lucide-react'
 import { marketApi, walletApi } from '../services/api'
-import { formatUsd, formatBalance, formatDate, coinMeta, shortAddress } from '../lib/utils'
+import { formatBalance, formatDate, coinMeta, shortAddress } from '../lib/utils'
 import { WALLET_COINS } from '../lib/coins'
 import { NETWORKS, useWalletStore } from '../store/useWalletStore'
 import { readPriceCache, writePriceCache } from '../lib/priceCache'
@@ -12,6 +12,8 @@ import Change from '../components/piramid/Change'
 import Sparkline, { synthSpark } from '../components/piramid/Sparkline'
 import { ui } from '../components/piramid/ui'
 import { cn } from '../lib/utils'
+
+const formatUsd = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(Number(value) || 0)
 
 const INTERVALS = [
   { label: '15m', value: '15' },
@@ -31,6 +33,7 @@ function timeAgo(ts) {
 }
 
 export default function Dashboard() {
+  const [walletStatus, setWalletStatus] = useState('loading')
   const hideBalances = useWalletStore((s) => s.hideBalances)
   const toggleHideBalances = useWalletStore((s) => s.toggleHideBalances)
   const network = useWalletStore((s) => s.getNetwork())
@@ -49,7 +52,6 @@ export default function Dashboard() {
   const [txs, setTxs] = useState([])
   const [picked, setPicked] = useState(null)
   const [, setNow] = useState(Date.now())
-  const [tool, setTool] = useState('cross')
   const chartCardRef = useRef(null)
   const netBtnRef = useRef(null)
 
@@ -89,10 +91,11 @@ export default function Dashboard() {
         walletApi.balances(),
         walletApi.transactions(network.symbol === 'USDT' ? 'ETH' : network.symbol).catch(() => ({ data: [] })),
       ])
+      setWalletStatus('ready')
       setBalances(bRes.data || {})
       setTxs(Array.isArray(tRes.data) ? tRes.data.slice(0, 6) : [])
     } catch {
-      /* keep last known balances */
+      setWalletStatus('error')
     }
   }
 
@@ -163,11 +166,6 @@ export default function Dashboard() {
     return tokens.find((t) => t.symbol === 'BTC') || tokens[0]
   }, [tokens])
 
-  const pnl30pct = useMemo(() => {
-    if (!totalUsd) return 0
-    return tokens.reduce((s, t) => s + (t.usd / totalUsd) * t.change30, 0)
-  }, [tokens, totalUsd])
-
   const q = searchQuery.trim().toLowerCase()
   const liveCards = useMemo(() => {
     const preferred = ['BTC', 'ETH', 'BNB']
@@ -216,17 +214,20 @@ export default function Dashboard() {
   const intervalLabel = INTERVALS.find((i) => i.value === interval)?.label || '1H'
   const today = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 
-  const alloc = holdings.filter((t) => t.usd > 0)
-  const COLORS = ['#d7f24c', '#627eea', '#f7931a', '#3ddc84', '#f0b90b']
 
   return (
     <>
-      <div className={ui.page}>
-      <div className="grid gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)_minmax(240px,300px)] lg:[grid-template-areas:'balance_crypto_crypto'_'chart_chart_portfolio']">
-        <section className={cn(ui.card, 'relative z-10 flex flex-col overflow-visible lg:[grid-area:balance]')}>
+      <div className={cn(ui.page, "reference-dashboard")}>
+      <h1 className="sr-only">Dashboard</h1>
+      {walletStatus !== 'ready' && <div className="balance-status flex items-center justify-between gap-3" role="status">
+        <span>{walletStatus === 'loading' ? 'Loading your wallet balances...' : 'Unable to refresh balances. Previously loaded values may be out of date.'}</span>
+        {walletStatus === 'error' && <button type="button" className="flex items-center gap-2 font-semibold" onClick={() => { setWalletStatus('loading'); loadWallet() }}><RefreshCw size={16} /> Retry</button>}
+      </div>}
+      <div className="dashboard-grid">
+        <section className={cn(ui.card, 'relative z-10 flex flex-col overflow-visible dashboard-balance')}>
           <div className="mb-[18px] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className={ui.cardIcon}>
+              <div className={cn(ui.cardIcon, "reference-card-icon")}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="6" width="20" height="14" rx="2" />
                   <path d="M2 10h20" />
@@ -234,17 +235,13 @@ export default function Dashboard() {
               </div>
               <span className={ui.title}>My Balance</span>
             </div>
-            <button type="button" className={ui.expandBtn} onClick={toggleHideBalances} aria-label="Toggle balances">
-              {hideBalances ? <EyeOff size={14} /> : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M7 17L17 7M7 7h10v10" />
-                </svg>
-              )}
+            <button type="button" className={ui.expandBtn} onClick={toggleHideBalances} aria-label={hideBalances ? "Show balances" : "Hide balances"} aria-pressed={hideBalances}>
+              {hideBalances ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
 
-          <div className="mb-5 flex items-start justify-between gap-3">
-            <div className={cn(ui.amount, 'min-w-0 break-all')}>{mask(formatUsd(totalUsd))}</div>
+          <div className="reference-balance-row mb-5 flex items-start justify-between gap-2">
+            <div className={cn(ui.amount, 'reference-balance-value min-w-0 break-all')}>{walletStatus === 'ready' || Object.keys(balances).length ? mask(formatUsd(totalUsd)) : '\u2014'}</div>
             <div className="relative shrink-0" ref={netBtnRef}>
               <button
                 type="button"
@@ -280,23 +277,23 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="mb-5 flex flex-nowrap gap-3.5">
+          <div className="dashboard-stats mb-5">
             <div className="min-w-0">
-              <div className="mb-1 whitespace-nowrap text-[11px] text-[var(--text-dimmer)]">Total Profit</div>
+              <div className="mb-1 whitespace-nowrap text-[11px] text-[var(--text-dimmer)]">Est. 24h P&L</div>
               <div className={cn('truncate text-[12.5px] font-bold', pnl24 >= 0 ? 'text-gain light:text-[#12985a]' : 'text-loss')}>
                 {hideBalances ? '••••' : `${pnl24 >= 0 ? '+' : ''}${formatUsd(pnl24)}`}
               </div>
             </div>
             <div>
-              <div className="mb-1 whitespace-nowrap text-[11px] text-[var(--text-dimmer)]">Avg. Growing</div>
+              <div className="mb-1 whitespace-nowrap text-[11px] text-[var(--text-dimmer)]">24h change</div>
               <div className={cn('truncate text-[12.5px] font-bold', avgGrow >= 0 ? 'text-gain light:text-[#12985a]' : 'text-loss')}>
                 {hideBalances ? '••••' : `${avgGrow >= 0 ? '+' : ''}${avgGrow.toFixed(2)}%`}
               </div>
             </div>
             <div>
-              <div className="mb-1 whitespace-nowrap text-[11px] text-[var(--text-dimmer)]">Best Performer</div>
+              <div className="mb-1 whitespace-nowrap text-[11px] text-[var(--text-dimmer)]">Top asset</div>
               <div className="truncate text-[12.5px] font-bold">
-                {best ? `${best.name} (${best.symbol})` : '—'}
+                {best ? best.symbol : '—'}
               </div>
             </div>
           </div>
@@ -306,7 +303,7 @@ export default function Dashboard() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M7 17L17 7M7 7h10v10" />
               </svg>
-              Top Up
+              Deposit
             </Link>
             <Link to="/app/send" className={ui.ghostBtn}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -319,40 +316,21 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="flex flex-col lg:[grid-area:crypto]">
+        <section className="flex flex-col dashboard-market">
           <div className="mb-3.5 flex flex-wrap items-center gap-2.5">
             <div>
-              <div className="text-[28px] font-extrabold tracking-tight max-[960px]:text-2xl">Live Crypto Updates</div>
+              <div className="text-xl font-semibold tracking-tight">Live Crypto Updates</div>
               <div className="mt-1 flex items-center gap-1.5 text-[13px] text-[var(--text-dimmer)]">
                 <span className="live-dot" />
                 Last Update: {timeAgo(updatedAt)}
               </div>
             </div>
             <div className="flex-1" />
-            <div className="flex gap-2">
-              <div className={ui.chip}>
-                USD
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </div>
-              <div className={ui.chip}>
-                {network.name}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </div>
-              <div className={ui.chip}>
-                1D
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </div>
-            </div>
+            <div className="flex gap-2"><span className={ui.chip}>USD</span><span className={ui.chip}>1D</span><Link to="/app/market" className="reference-see-all">See All <span aria-hidden="true">&rsaquo;</span></Link></div>
 
           </div>
 
-          <div className="grid flex-1 grid-cols-3 gap-4 max-[1100px]:grid-cols-1">
+          <div className="dashboard-market-cards">
             {liveCards.map((c) => {
               const pos = Number(c.change_24h) >= 0
               const spark = Array.isArray(c.sparkline) && c.sparkline.length
@@ -362,6 +340,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   key={c.symbol}
+                  aria-pressed={chartSymbol === c.symbol.toUpperCase()}
                   className={cn(ui.ccard, 'p-5')}
                   onClick={() => setChartSymbol((c.symbol || 'BTC').toUpperCase())}
                 >
@@ -382,10 +361,10 @@ export default function Dashboard() {
                   <div className="mb-1.5 border-l-2 pl-1.5 text-xs text-[var(--text-dimmer)]" style={{ borderLeftColor: coinColor(c.symbol) }}>Price</div>
                   <div className="flex items-end justify-between gap-2">
                     <div>
-                      <div className="mb-1 text-[22px] font-extrabold tracking-tight">{formatUsd(c.price_usd)}</div>
+                      <div className="reference-asset-price mb-1 font-extrabold tracking-tight">{formatUsd(c.price_usd)}</div>
                       <Change value={c.change_24h} />
                     </div>
-                    <Sparkline points={spark} pos={pos} width={112} height={44} />
+                    <Sparkline points={spark} pos={pos} width={76} height={32} />
                   </div>
                 </button>
               )
@@ -393,7 +372,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className={cn(ui.card, 'flex min-h-[460px] flex-col overflow-hidden p-0 lg:[grid-area:chart]')} ref={chartCardRef}>
+        <section className={cn(ui.card, 'flex min-h-[460px] flex-col overflow-hidden p-0 dashboard-chart')} ref={chartCardRef}>
           <div className="flex flex-wrap items-center gap-2.5 border-b border-[var(--line)] px-3.5 py-2.5">
             <div className="flex items-center gap-2.5">
               <CoinIcon symbol={chartSymbol} />
@@ -444,35 +423,8 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-            <div className={ui.tb}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M4 6h16M4 12h10M4 18h6" strokeLinecap="round" />
-                <circle cx="17" cy="12" r="1.6" />
-                <circle cx="13" cy="18" r="1.6" />
-              </svg>
-            </div>
-            <button type="button" className={ui.tb}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="10" width="4" height="8" />
-                <rect x="10" y="5" width="4" height="13" />
-                <rect x="17" y="13" width="4" height="5" />
-              </svg>
-              Indicator
-            </button>
-            <button type="button" className={ui.tb}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 8v4l3 2" />
-              </svg>
-              Warning
-            </button>
+            <Link to="/app/alerts" className={ui.tb}>Price alerts</Link>
             <div className="flex-1" />
-            <button type="button" className={ui.tb} aria-label="Snapshot">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-                <circle cx="12" cy="13" r="3.2" />
-              </svg>
-            </button>
             <button
               type="button"
               className={ui.tb}
@@ -491,128 +443,17 @@ export default function Dashboard() {
           </div>
 
           <div className="flex min-h-0 flex-1">
-            <div className="hidden w-11 flex-col items-center gap-0.5 border-r border-[var(--line)] py-2 md:flex">
-              {[
-                {
-                  id: 'cross',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
-                      <circle cx="12" cy="12" r="2" />
-                    </svg>
-                  ),
-                },
-                {
-                  id: 'trend',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M4 20L20 4" />
-                    </svg>
-                  ),
-                },
-                {
-                  id: 'hline',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M4 8h16M4 16h16" />
-                    </svg>
-                  ),
-                },
-                {
-                  id: 'fib',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M4 6h16M4 12h10M4 18h6" />
-                      <circle cx="17" cy="12" r="1.5" />
-                      <circle cx="13" cy="18" r="1.5" />
-                    </svg>
-                  ),
-                },
-                {
-                  id: 'brush',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 17c3-6 6 6 9-6s6 6 9-6" />
-                    </svg>
-                  ),
-                },
-                {
-                  id: 'text',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M5 7h14M12 7v11" />
-                    </svg>
-                  ),
-                },
-                {
-                  id: 'emoji',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <circle cx="12" cy="12" r="9" />
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2" strokeLinecap="round" />
-                      <circle cx="9" cy="10" r="1" fill="currentColor" />
-                      <circle cx="15" cy="10" r="1" fill="currentColor" />
-                    </svg>
-                  ),
-                },
-                {
-                  id: 'measure',
-                  icon: (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M4 20L20 4" />
-                      <path d="M9 9l2 2M13 5l2 2M7 13l2 2" />
-                    </svg>
-                  ),
-                },
-              ].map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={cn(ui.tool, tool === t.id && ui.toolOn)}
-                  onClick={() => setTool(t.id)}
-                  aria-label={t.id}
-                >
-                  {t.icon}
-                </button>
-              ))}
-              <div className="my-1 h-px w-[18px] bg-[var(--line)]" />
-              <button type="button" className={ui.tool} aria-label="Zoom">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
-                </svg>
-              </button>
-              <button type="button" className={ui.tool} aria-label="Magnet">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                  <path d="M7 13v-2a5 5 0 0 1 10 0v2" />
-                  <path d="M5 13v4h4v-4M15 13v4h4v-4" />
-                </svg>
-              </button>
-              <button type="button" className={ui.tool} aria-label="Lock">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <rect x="5" y="11" width="14" height="10" rx="2" />
-                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                </svg>
-              </button>
-              <div className="my-1 h-px w-[18px] bg-[var(--line)]" />
-              <button type="button" className={ui.tool} aria-label="Clear">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="tv-embed min-h-[380px] min-w-0 flex-1">
+            <div className="dashboard-chart-embed min-w-0 flex-1">
               <TradingViewChart fill mode="advanced" symbol={chartSymbol} interval={interval} />
             </div>
           </div>
         </section>
 
-        <aside className="flex flex-col gap-4 lg:[grid-area:portfolio]">
+        <aside className="flex flex-col gap-4 dashboard-portfolio">
           <div className={ui.card}>
             <div className="mb-[18px] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className={ui.cardIcon}>
+                <div className={cn(ui.cardIcon, "reference-card-icon")}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 3v18h18" />
                     <path d="M7 15l4-5 3 3 5-7" />
@@ -628,53 +469,14 @@ export default function Dashboard() {
             </div>
 
             <div className="mb-3.5 flex items-center gap-2">
-              <div className={cn('inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11.5px] font-bold', pnl30pct >= 0 ? 'bg-[var(--green-bg)] text-gain' : 'bg-red-500/15 text-loss')}>
+              <div className={cn('inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11.5px] font-bold', avgGrow >= 0 ? 'bg-[var(--green-bg)] text-gain' : 'bg-red-500/15 text-loss')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={pnl30pct >= 0 ? 'M4 15l6-6 4 4 6-8' : 'M4 9l6 6 4-4 6 8'} />
+                  <path d={avgGrow >= 0 ? 'M4 15l6-6 4 4 6-8' : 'M4 9l6 6 4-4 6 8'} />
                 </svg>
-                {Math.abs(pnl30pct).toFixed(2)}%
+                {Math.abs(avgGrow).toFixed(2)}%
               </div>
-              <div className="text-[12px] text-[var(--text-dimmer)]">Profit in last 24 hours</div>
+              <div className="text-[12px] text-[var(--text-dimmer)]">24h portfolio change</div>
             </div>
-
-            {alloc.length > 0 && (
-              <div className="alloc-wrap">
-                <svg width="72" height="72" viewBox="0 0 36 36">
-                  {(() => {
-                    let off = 0
-                    const sum = alloc.reduce((s, t) => s + t.usd, 0) || 1
-                    return alloc.map((t, i) => {
-                      const pct = (t.usd / sum) * 100
-                      const dash = `${pct} ${100 - pct}`
-                      const el = (
-                        <circle
-                          key={t.symbol}
-                          cx="18"
-                          cy="18"
-                          r="15.9"
-                          fill="none"
-                          stroke={COLORS[i % COLORS.length]}
-                          strokeWidth="4"
-                          strokeDasharray={dash}
-                          strokeDashoffset={-off}
-                          transform="rotate(-90 18 18)"
-                        />
-                      )
-                      off += pct
-                      return el
-                    })
-                  })()}
-                </svg>
-                <div className="alloc-legend">
-                  {alloc.map((t, i) => (
-                    <div key={t.symbol} className="alloc-leg">
-                      <span className="alloc-sw" style={{ background: COLORS[i % COLORS.length] }} />
-                      {t.symbol} {totalUsd ? ((t.usd / totalUsd) * 100).toFixed(0) : 0}%
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <div className="holdings">
               {holdings.map((t) => (
@@ -714,7 +516,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className={cn(ui.card, 'overflow-hidden')}>
+          <div className={cn(ui.card, 'reference-performance overflow-hidden')}>
             <div className="mb-3 flex items-center justify-between">
               <span className="text-[13.5px] font-bold">24h change</span>
               <span className="text-[11px] text-[var(--text-dimmer)]">{today}</span>

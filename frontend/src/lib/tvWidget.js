@@ -2,9 +2,15 @@
 export function mountTradingViewWidget(container, scriptSrc, config) {
   if (!container) return () => {}
   let cancelled = false
+  // Keep each async script attached to its own host, even after unmount.
+  // A late-loading embed reads currentScript.parentNode when it executes.
+  const host = document.createElement('div')
+  host.className = 'tradingview-widget-container'
+  host.style.width = '100%'
+  host.style.height = '100%'
   const frame = requestAnimationFrame(() => {
     if (cancelled || !container.isConnected) return
-    container.innerHTML = ''
+    container.appendChild(host)
 
     const boxH = Math.round(container.clientHeight || 0)
     const boxW = Math.round(container.clientWidth || 0)
@@ -34,7 +40,7 @@ export function mountTradingViewWidget(container, scriptSrc, config) {
     widget.style.display = 'block'
     widget.style.width = '100%'
     widget.style.height = typeof height === 'number' ? `${height}px` : '100%'
-    container.appendChild(widget)
+    host.appendChild(widget)
 
     const script = document.createElement('script')
     const sep = scriptSrc.includes('?') ? '&' : '?'
@@ -42,11 +48,11 @@ export function mountTradingViewWidget(container, scriptSrc, config) {
     script.type = 'text/javascript'
     script.async = true
     script.textContent = JSON.stringify(resolved)
-    container.appendChild(script)
+    host.appendChild(script)
   })
   return () => {
     cancelled = true
     cancelAnimationFrame(frame)
-    container.innerHTML = ''
+    host.remove()
   }
 }

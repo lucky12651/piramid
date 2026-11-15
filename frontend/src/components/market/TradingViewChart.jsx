@@ -42,7 +42,7 @@ export default function TradingViewChart({
             gridColor,
             isTransparent: false,
             hide_top_toolbar: true,
-            hide_side_toolbar: true,
+            hide_side_toolbar: false,
             hide_legend: false,
             allow_symbol_change: false,
             calendar: false,

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { authApi } from '../services/api'
 import { useAuthStore } from '../store/useAuthStore'
 import { getApiError } from '../lib/errors'
+import AuthLayout from '../components/AuthLayout'
 import BrandLogo from '../components/BrandLogo'
 
 export default function Register() {
@@ -43,25 +44,26 @@ export default function Register() {
   }
 
   return (
-    <div className="mesh-bg flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="pointer-events-none absolute inset-0 grid-fade opacity-60" />
+    <AuthLayout>
       <div className="relative w-full max-w-md">
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-left">
           <Link to="/" className="inline-flex items-center gap-2.5 text-white">
             <BrandLogo size={36} rounded="rounded-xl" />
             <span className="font-semibold tracking-tight">Piramid</span>
           </Link>
-          <h1 className="mt-6 text-2xl font-semibold tracking-tight">Create your wallet</h1>
+          <h1 className="mt-8 text-3xl font-semibold tracking-tight">Create your wallet</h1>
           <p className="mt-2 text-sm text-white/45">
             Generates BTC, LTC, ETH, DOGE & USDT wallets (may take 30–60s)
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="x-card space-y-4 p-6 sm:p-8">
+        <form onSubmit={onSubmit} className="auth-form space-y-5">
           <div>
-            <label className="x-label">Username</label>
+            <label htmlFor="username" className="x-label">Username</label>
             <input
               className="x-input"
+              id="username"
+              autoComplete="username"
               value={form.username}
               onChange={set('username')}
               required
@@ -70,10 +72,12 @@ export default function Register() {
             />
           </div>
           <div>
-            <label className="x-label">Email</label>
+            <label htmlFor="email" className="x-label">Email address</label>
             <input
+              id="email"
               type="email"
               className="x-input"
+              autoComplete="email"
               value={form.email}
               onChange={set('email')}
               required
@@ -81,10 +85,12 @@ export default function Register() {
             />
           </div>
           <div>
-            <label className="x-label">Password</label>
+            <label htmlFor="password" className="x-label">Password</label>
             <input
+              id="password"
               type="password"
               className="x-input"
+              autoComplete="new-password"
               value={form.password}
               onChange={set('password')}
               required
@@ -118,6 +124,6 @@ export default function Register() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
