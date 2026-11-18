@@ -6,7 +6,7 @@ from passlib.context import CryptContext
 
 from app.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt", "bcrypt_sha256"], deprecated="auto")
 
 
 def _bcrypt_secret(password: str) -> str:
@@ -22,7 +22,9 @@ def verify_password(password: str, password_hash: str) -> bool:
     if not password_hash:
         return False
     try:
-        return pwd_context.verify(_bcrypt_secret(password), password_hash)
+        # Preserve login for accounts whose hashes were upgraded before the rollback.
+        secret = password if password_hash.startswith("$bcrypt-sha256$") else _bcrypt_secret(password)
+        return pwd_context.verify(secret, password_hash)
     except Exception:
         try:
             from werkzeug.security import check_password_hash
